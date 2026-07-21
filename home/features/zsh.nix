@@ -71,6 +71,10 @@
     # Only what has no typed home-manager option: dynamic per-shell values,
     # zstyles, and zle widget code.
     initContent = ''
+      # fnm needs its env eval'd in each shell to manage PATH/Node version;
+      # --use-on-cd auto-switches on .nvmrc/.node-version when entering a dir.
+      eval "$(fnm env --use-on-cd)"
+
       ### --- fzf-tab settings ---
       zstyle ':completion:*:git-checkout:*' sort false
       zstyle -d ':completion:*' format

@@ -21,6 +21,7 @@
           "idea"
           "google-chrome"
           "vscode"
+          "discord"
         ];
       };
     in
