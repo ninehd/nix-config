@@ -30,26 +30,27 @@
       # Color scheme from omarchy theme
       background = "1a1b26";
       foreground = "a9b1d6";
-      selection-background = "7aa2f7";
+      selection-background = "292e42";
+      selection-foreground = "c0caf5";
 
       # Normal colors (0-7) + bright colors (8-15)
       palette = [
-        "0=#32344a"
+        "0=#0e0e14"
         "1=#f7768e"
         "2=#9ece6a"
         "3=#e0af68"
         "4=#7aa2f7"
         "5=#ad8ee6"
         "6=#449dab"
-        "7=#787c99"
-        "8=#444b6a"
+        "7=#a9b1d6"
+        "8=#414868"
         "9=#ff7a93"
         "10=#b9f27c"
         "11=#ff9e64"
         "12=#7da6ff"
         "13=#bb9af7"
         "14=#0db9d7"
-        "15=#acb0d0"
+        "15=#c0caf5"
       ];
     };
   };
