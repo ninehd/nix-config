@@ -2,8 +2,6 @@
 
 {
   home.packages = with pkgs; [
-    ripgrep
-    fd
     jetbrains-mono # font used by ghostty's settings.font-family below
   ];
 

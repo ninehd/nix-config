@@ -9,8 +9,12 @@
     ./features/starship.nix
     ./features/zsh.nix
     ./features/brave.nix
+    ./features/chrome.nix
     ./features/git.nix
     ./features/jetbrains.nix
+    ./features/discord.nix
+    ./features/ai.nix
+    ./features/tools.nix
   ];
 
   home.username = "ninehd";

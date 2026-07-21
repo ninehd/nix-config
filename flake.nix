@@ -19,6 +19,8 @@
         # instead of a blanket allowUnfree.
         config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
           "idea"
+          "google-chrome"
+          "vscode"
         ];
       };
     in
