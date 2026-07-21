@@ -15,6 +15,7 @@
     ./features/discord.nix
     ./features/ai.nix
     ./features/tools.nix
+    ./features/nixvim.nix
   ];
 
   home.username = "ninehd";
