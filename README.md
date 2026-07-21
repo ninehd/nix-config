@@ -11,21 +11,38 @@ the system itself stays managed by the distro (pacman on EndeavourOS).
 flake.nix              # flake entry point, defines hosts
 hosts/
   endeavour.nix        # EndeavourOS host (home path, Linux tweaks)
+  wsl.nix              # WSL host (home path, drops brave/discord/ghostty)
 home/
   common.nix           # shared by every machine
   features/
     terminal.nix       # ghostty (binary + config via Nix) + CLI tools
     starship.nix       # starship prompt (binary + config via Nix)
     zsh.nix            # zsh + antidote + fzf + zoxide (binaries + config via Nix)
-    brave.nix         # Brave browser (binary + config via Nix)
+    brave.nix          # Brave browser (binary + config via Nix)
+    chrome.nix         # Google Chrome (binary only, extensions installed manually)
+    git.nix            # git config
+    jetbrains.nix      # IntelliJ IDEA Ultimate (binary only)
+    discord.nix        # Discord (home.discord.enable toggle, default on)
+    ai.nix             # opencode (headless server + CLI wrapper)
+    tools.nix          # misc CLI tools (curl, jq, ripgrep, fd, gh, vscode…)
+    nixvim.nix         # Neovim configured declaratively (nixvim)
 ```
+
+## Hosts
+
+- **endeavour** — EndeavourOS, everything enabled.
+- **wsl** — WSL (home path `/home/wdhenin`), overrides in `hosts/wsl.nix`:
+  Brave and Ghostty forced off (`lib.mkForce false`), Discord off via
+  `home.discord.enable = false`. Chrome and JetBrains IDEA stay enabled —
+  used directly from WSL rather than through the Windows host.
 
 ## Daily usage
 
 Edit the `.nix` files, then:
 
 ```bash
-home-manager switch --flake ~/github/nix-config#endeavour
+home-manager switch --flake ~/github/nix-config#endeavour   # EndeavourOS
+home-manager switch --flake ~/github/nix-config#wsl          # WSL
 ```
 
 New files must be known to git before switching (`git add`), otherwise the

@@ -3,7 +3,7 @@
 # Idempotent: safe to re-run, each step is skipped if already done.
 set -euo pipefail
 
-REPO_DIR="$HOME/github/nix-config"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOST="endeavour"
 NIX_ZSH="$HOME/.nix-profile/bin/zsh"
 GPU_SETUP="$HOME/.nix-profile/bin/non-nixos-gpu-setup"
