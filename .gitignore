@@ -1,0 +1,6 @@
+# Nix build result symlinks
+result
+result-*
+
+# direnv cache (if you adopt it later)
+.direnv/
