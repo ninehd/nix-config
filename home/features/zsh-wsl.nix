@@ -1,5 +1,10 @@
+{ lib, ... }:
+
 {
   programs.zsh = {
+    # No `open` under WSL -- Windows Explorer opens the current directory.
+    shellAliases.xx = lib.mkForce "explorer.exe .";
+
     sessionVariables = {
       XCURSOR_SIZE = 16;
 
