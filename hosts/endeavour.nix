@@ -7,6 +7,7 @@
     ../home/common.nix
   ];
 
+  home.username = "ninehd";
   home.homeDirectory = "/home/ninehd";
 
   targets.genericLinux.enable = true;

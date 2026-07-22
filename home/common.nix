@@ -18,8 +18,6 @@
     ./features/nixvim.nix
   ];
 
-  home.username = "ninehd";
-
   # Reference release for this config's initial state.
   # Do NOT bump casually — read the release notes first.
   home.stateVersion = "25.05";

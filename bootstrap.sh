@@ -1,10 +1,20 @@
 #!/usr/bin/env bash
 # Bootstrap this home-manager config on a fresh machine.
 # Idempotent: safe to re-run, each step is skipped if already done.
+#
+# Usage: ./bootstrap.sh <host>
+#   host: name of the flake output to use (e.g. endeavour, wsl)
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOST="endeavour"
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: $0 <host>" >&2
+  echo "  Available hosts: endeavour, wsl" >&2
+  exit 1
+fi
+
+HOST="$1"
 NIX_ZSH="$HOME/.nix-profile/bin/zsh"
 GPU_SETUP="$HOME/.nix-profile/bin/non-nixos-gpu-setup"
 
