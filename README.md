@@ -41,8 +41,15 @@ home/
 Edit the `.nix` files, then:
 
 ```bash
-home-manager switch --flake ~/github/nix-config#endeavour   # EndeavourOS
-home-manager switch --flake ~/github/nix-config#wsl          # WSL
+hms   # alias for: home-manager switch --flake $FLAKE
+```
+
+`$FLAKE` is set per host (`hosts/*.nix`) to `~/nix-config#<host>`, so the
+same alias works on every machine. Spelled out, it's:
+
+```bash
+home-manager switch --flake ~/nix-config#endeavour   # EndeavourOS
+home-manager switch --flake ~/nix-config#wsl         # WSL
 ```
 
 New files must be known to git before switching (`git add`), otherwise the
@@ -50,10 +57,10 @@ flake won't see them.
 
 ## Fresh install
 
-Clone this repo to `~/github/nix-config`, then:
+Clone this repo to `~/nix-config` (the path `$FLAKE` expects), then:
 
 ```bash
-./bootstrap.sh
+./bootstrap.sh <host>   # endeavour | wsl
 ```
 
 See the script for details. In short: installs Nix (Determinate), activates

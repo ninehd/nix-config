@@ -21,6 +21,8 @@
     enableCompletion = false;
 
     shellAliases = {
+      # $FLAKE (path#config) is set per host — see hosts/*.nix.
+      hms = "home-manager switch --flake $FLAKE";
       xx = "open .";
       ll = "ls -lha";
       vim = "nvim";

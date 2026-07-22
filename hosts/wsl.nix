@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ config, lib, ... }:
 
 {
   # Machine-specific entry point for WSL. Pulls in the shared config, then
@@ -12,6 +12,9 @@
   home.homeDirectory = "/home/wdhenin";
 
   targets.genericLinux.enable = true;
+
+  # Target of the `hms` alias (see home/features/zsh.nix).
+  home.sessionVariables.FLAKE = "${config.home.homeDirectory}/nix-config#wsl";
 
   # Brave, Discord, Ghostty, and Git aren't needed here (WSL uses the Windows
   # terminal and Git installation instead).
