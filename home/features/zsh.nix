@@ -46,9 +46,6 @@
         "mattmc3/ez-compinit"
         "zsh-users/zsh-completions kind:fpath path:src"
 
-        # --- Completion styles (after compinit) ---
-        "belak/zsh-utils path:completion/functions kind:autoload post:compstyle_zshzoo_setup"
-
         # --- FZF completion UI ---
         # Must load right after compinit, but before any plugin that wraps zle
         # widgets (zsh-autosuggestions, fast-syntax-highlighting), or tab stops
@@ -77,7 +74,6 @@
 
       ### --- fzf-tab settings ---
       zstyle ':completion:*:git-checkout:*' sort false
-      zstyle -d ':completion:*' format
       zstyle ':completion:*:descriptions' format '[%d]'
       zstyle ':completion:*' list-colors ''${(s.:.)LS_COLORS}
       zstyle ':completion:*' menu no
