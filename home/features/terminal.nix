@@ -1,8 +1,11 @@
 { pkgs, ... }:
 
 {
+  fonts.fontconfig.enable = true; # so fontconfig picks up fonts from the nix profile (needed for IntelliJ's terminal)
+
   home.packages = with pkgs; [
     jetbrains-mono # font used by ghostty's settings.font-family below
+    nerd-fonts.symbols-only # nerd font icons fallback, needed for IntelliJ terminal (Ghostty falls back to this automatically already)
   ];
 
   programs.ghostty = {
