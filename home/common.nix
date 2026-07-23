@@ -16,6 +16,7 @@
     ./features/ai.nix
     ./features/tools.nix
     ./features/nixvim.nix
+    ./features/gc.nix
   ];
 
   # Reference release for this config's initial state.
