@@ -23,7 +23,7 @@ home/
     git.nix            # git config
     jetbrains.nix      # IntelliJ IDEA Ultimate (binary only)
     discord.nix        # Discord (home.discord.enable toggle, default on)
-    ai.nix             # opencode (headless server + CLI wrapper)
+    ai.nix             # pi-coding-agent
     tools.nix          # misc CLI tools (curl, jq, ripgrep, fd, gh, vscode…)
     nixvim.nix         # Neovim configured declaratively (nixvim)
 ```
