@@ -1,0 +1,14 @@
+{
+  "lastChangelogVersion": "0.81.1",
+  "theme": "dark",
+  "defaultProvider": "github-copilot",
+  "defaultModel": "claude-opus-4.8",
+  "defaultThinkingLevel": "medium",
+  "packages": [
+    "npm:pi-caveman"
+  ],
+  "enableInstallTelemetry": false,
+  "treeFilterMode": "default",
+  "skills": [
+  ]
+}
