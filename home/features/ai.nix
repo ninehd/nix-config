@@ -3,7 +3,7 @@
 {
   config.programs.pi-coding-agent = {
     enable = true;
-    extraPackages = [ pkgs.nodejs pkgs.bun ];
+    extraPackages = [ pkgs.nodejs pkgs.bun pkgs.rtk ];
   };
 
   config.home.activation.linkPiConfig =
