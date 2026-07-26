@@ -31,24 +31,38 @@ import { type SettingItem, type SettingsListTheme, SettingsList, truncateToWidth
  *   /statusline config    Choose which extension statuses show, and their position.
  */
 
-// ── Truecolor SGR helper (bypasses theme.fg, supports hex) ───────────────────
-// Prefixes are cached: colors are a small fixed palette of literals.
-const sgrCache = new Map<string, string>();
+// ── Terminal-palette ANSI helper ─────────────────────────────────────────────
+// Emits basic 16-color SGR codes that resolve against the terminal's *own*
+// palette — so these follow whichever ghostty theme is active (dark/light)
+// instead of being locked to one hue.
+const ANSI_CODES: Record<string, number> = {
+	black: 30,
+	red: 31,
+	green: 32,
+	yellow: 33,
+	blue: 34,
+	purple: 35,
+	magenta: 35,
+	cyan: 36,
+	white: 37,
+	"bright-black": 90,
+	"bright-red": 91,
+	"bright-green": 92,
+	"bright-yellow": 93,
+	"bright-blue": 94,
+	"bright-purple": 95,
+	"bright-magenta": 95,
+	"bright-cyan": 96,
+	"bright-white": 97,
+};
 
-function sgrForHex(hexColor: string): string {
-	let prefix = sgrCache.get(hexColor);
-	if (prefix === undefined) {
-		const r = Number.parseInt(hexColor.slice(1, 3), 16);
-		const g = Number.parseInt(hexColor.slice(3, 5), 16);
-		const b = Number.parseInt(hexColor.slice(5, 7), 16);
-		prefix = `\x1b[38;2;${r};${g};${b}m`;
-		sgrCache.set(hexColor, prefix);
-	}
-	return prefix;
+function ansiOpen(colorName: string): string {
+	const code = ANSI_CODES[colorName] ?? 39;
+	return `\x1b[${code}m`;
 }
 
-function hex(hexColor: string, text: string): string {
-	return `${sgrForHex(hexColor)}${text}\x1b[39m`;
+function ansi(colorName: string, text: string): string {
+	return `${ansiOpen(colorName)}${text}\x1b[39m`;
 }
 
 // ── SGR-preserving sanitizer ─────────────────────────────────────────────────
@@ -188,16 +202,16 @@ function readGit(cwd: string): GitInfo {
 		// Build the status label with starship icons.
 		const parts: string[] = [];
 		if (ahead > 0 && behind > 0) {
-			parts.push(`${GIT_ICONS.diverged} ${GIT_ICONS.ahead} ${ahead} ${GIT_ICONS.behind} ${behind}`);
+			parts.push(`${GIT_ICONS.diverged} ${GIT_ICONS.ahead}${ahead} ${GIT_ICONS.behind}${behind}`);
 		} else if (ahead > 0) {
-			parts.push(`${GIT_ICONS.ahead} ${ahead}`);
+			parts.push(`${GIT_ICONS.ahead}${ahead}`);
 		} else if (behind > 0) {
-			parts.push(`${GIT_ICONS.behind} ${behind}`);
+			parts.push(`${GIT_ICONS.behind}${behind}`);
 		}
-		if (conflicted) parts.push(`${GIT_ICONS.conflicted} ${conflicted}`);
-		if (staged) parts.push(`${GIT_ICONS.staged} ${staged}`);
-		if (modified) parts.push(`${GIT_ICONS.modified} ${modified}`);
-		if (untracked) parts.push(`${GIT_ICONS.untracked} ${untracked}`);
+		if (conflicted) parts.push(`${GIT_ICONS.conflicted}${conflicted}`);
+		if (staged) parts.push(`${GIT_ICONS.staged}${staged}`);
+		if (modified) parts.push(`${GIT_ICONS.modified}${modified}`);
+		if (untracked) parts.push(`${GIT_ICONS.untracked}${untracked}`);
 		const label = parts.length ? `[${parts.join(" ")}]` : "";
 
 		return store({ branch, label });
@@ -291,7 +305,14 @@ function ensureGitWatcher(cwd: string, notify: () => void): void {
 const STATUS_FORMATTERS: Record<string, (raw: string, theme: Theme) => string> = {
 	sandbox: (raw, theme) => {
 		const on = stripVTControlCharacters(raw).trim().length > 0;
-		return on ? hex("#b294bb", "● sandbox") : theme.fg("dim", "○ sandbox");
+		return on ? ansi("purple", "● sandbox") : theme.fg("dim", "○ sandbox");
+	},
+	// pix-optimizer colors its enabled icons with the pi theme's "accent" token;
+	// swap that specific sequence for terminal cyan so it follows ghostty's
+	// palette instead, without touching the "dim" (disabled) icons.
+	"pix-optimizer": (raw, theme) => {
+		const accentAnsi = theme.getFgAnsi("accent");
+		return raw.split(accentAnsi).join(ansiOpen("cyan"));
 	},
 };
 
@@ -431,24 +452,24 @@ export default function (pi: ExtensionAPI) {
 					}
 
 					// ── left: prompt-style path + git segment ─────────────
-					const cwdLabel = theme.fg("success", fmtCwd(ctx.cwd));
+					const cwdLabel = ansi("green", fmtCwd(ctx.cwd));
 
 					let gitStr = "";
 					ensureGitWatcher(ctx.cwd, requestRender);
 					const gitInfo = readGit(ctx.cwd);
 					if (gitInfo) {
-						const icon = hex("#8abeb7", GIT_ICONS.branch);
-						const branch = hex("#8abeb7", gitInfo.branch);
-						const tail = gitInfo.label ? ` ${hex("#8abeb7", gitInfo.label)}` : "";
+						const icon = ansi("blue", GIT_ICONS.branch);
+						const branch = ansi("blue", gitInfo.branch);
+						const tail = gitInfo.label ? ` ${ansi("red", gitInfo.label)}` : "";
 						gitStr = ` ${theme.fg("dim", "on")} ${icon} ${branch}${tail}`;
 					}
 
 					const left = `${cwdLabel}${gitStr}`;
 
 					// ── right, line 1: usage blocks (each colored) ────────
-					const inputStr = input > 0 ? hex("#81a2be", `↑${fmtNum(input)}`) : "";
-					const outputStr = output > 0 ? hex("#b5bd68", `↓${fmtNum(output)}`) : "";
-					const costStr = cost > 0 ? hex("#d4d4d4", `$${cost.toFixed(2)}`) : "";
+					const inputStr = input > 0 ? ansi("blue", `↑${fmtNum(input)}`) : "";
+					const outputStr = output > 0 ? ansi("green", `↓${fmtNum(output)}`) : "";
+					const costStr = cost > 0 ? ansi("bright-yellow", `$${cost.toFixed(2)}`) : "";
 					const stats = [inputStr, outputStr, costStr].filter(Boolean).join("  ");
 
 					// Context usage (aligned with pi's default footer).
@@ -460,11 +481,11 @@ export default function (pi: ExtensionAPI) {
 						const pct = pctValue !== null ? `${pctValue.toFixed(1)}%` : "?";
 						const display = `${pct}/${fmtNum(ctxWindow)}`;
 						if (pctValue !== null && pctValue > 90) {
-							ctxStr = hex("#cc6666", display); // error red
+							ctxStr = ansi("red", display); // error red
 						} else if (pctValue !== null && pctValue > 70) {
-							ctxStr = hex("#ffff00", display); // warning yellow
+							ctxStr = ansi("yellow", display); // warning yellow
 						} else {
-							ctxStr = hex("#8abeb7", display); // accent teal
+							ctxStr = ansi("cyan", display); // accent teal
 						}
 					}
 
