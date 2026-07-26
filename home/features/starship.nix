@@ -44,7 +44,7 @@ in
       git_branch = {
         symbol = "";
         style = "";
-        format = "on [[$symbol $branch ](fg:red)]($style)";
+        format = "on [[$symbol $branch ](fg:blue)]($style)";
       };
 
       git_commit = {
@@ -59,17 +59,17 @@ in
 
       git_status = {
         style = "";
-        format = "(${bs}[ ](bg:$style fg:red)$conflicted$staged$modified$renamed$deleted$untracked$ahead_behind$stashed($style))";
-        conflicted = "[ ](bold fg:red)[  \${count} ](fg:red)";
-        staged = "[ $count ](fg:red)";
-        modified = "[󰏫 \${count} ](fg:red)";
-        renamed = "[ \${count} ](fg:red)";
-        deleted = "[ \${count} ](fg:red)";
-        untracked = "[ \${count} ](fg:red)";
-        stashed = "[ \${count} ](fg:red)";
-        ahead = "[ \${count} ](fg:red)";
-        behind = "[ \${count} ](fg:red)";
-        diverged = "[ ](fg:red)[ נּ ](fg:red)[ \${ahead_count} ](fg:red)[ \${behind_count} ](fg:red)";
+        format = "(${bs}[ ](bg:$style fg:red)[\\[$conflicted$staged$modified$renamed$deleted$untracked$ahead_behind$stashed${bs}\\]](fg:red) )";
+        conflicted = "[ ](bold fg:red)[ \${count} ](fg:red)";
+        staged = "[$count ](fg:red)";
+        modified = "[󰏫\${count} ](fg:red)";
+        renamed = "[\${count} ](fg:red)";
+        deleted = "[\${count} ](fg:red)";
+        untracked = "[\${count} ](fg:red)";
+        stashed = "[\${count} ](fg:red)";
+        ahead = "[\${count} ](fg:red)";
+        behind = "[\${count} ](fg:red)";
+        diverged = "[ ](fg:red)[ נּ ](fg:red)[\${ahead_count} ](fg:red)[\${behind_count} ](fg:red)";
       };
 
       cmd_duration = {
@@ -87,12 +87,12 @@ in
       time = {
         disabled = false;
         time_format = "%R";
-        format = "[at $time ](fg:white)";
+        format = "[at $time ](fg:purple)";
       };
 
       username = {
         show_always = true;
-        style_user = "fg:blue";
+        style_user = "fg:bright-cyan";
         format = "[$user]($style) in ";
       };
     };

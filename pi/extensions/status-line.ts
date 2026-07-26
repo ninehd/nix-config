@@ -1,27 +1,34 @@
 import { execSync } from "node:child_process";
-import { existsSync, watch as fsWatch } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, watch as fsWatch, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join as pathJoin, resolve as pathResolve } from "node:path";
+import { dirname, join as pathJoin, resolve as pathResolve } from "node:path";
 import { stripVTControlCharacters } from "node:util";
 import type { AssistantMessage } from "@earendil-works/pi-ai";
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
-import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, Theme } from "@earendil-works/pi-coding-agent";
+import { type SettingItem, type SettingsListTheme, SettingsList, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 
 /**
  * Custom two-line footer / status-line extension.
  *
- * Left side is a shell-prompt-style path + git segment; the right side is
- * right-aligned across both lines and holds usage, context, and model info.
+ * Left side is a shell-prompt-style path + git segment; line 1's right side
+ * holds usage/context, line 2's right side holds model info. Extension
+ * statuses default to line 1 (right, alongside usage/context) but can be
+ * moved bottom-left (line 2) via /statusline config.
  *
- * Layout:
+ * Layout (position: right, the default):
  *   line 1: ~/project  on   main [ ...]        [ext icons]  ↑5k  ↓2k  $0.01  2.4%/1.0M
  *   line 2:                                                              model • level
+ *
+ * Layout (position: left):
+ *   line 1: ~/project  on   main [ ...]                    ↑5k  ↓2k  $0.01  2.4%/1.0M
+ *   line 2: [ext icons]                                                model • level
  *
  * Statuses published by other extensions are rendered with their original
  * ANSI colors preserved (see sanitizePreservingSgr).
  *
- * Command:
- *   /statusline    Toggle this custom footer on/off (falls back to the default).
+ * Commands:
+ *   /statusline           Toggle this custom footer on/off (falls back to the default).
+ *   /statusline config    Choose which extension statuses show, and their position.
  */
 
 // ── Truecolor SGR helper (bypasses theme.fg, supports hex) ───────────────────
@@ -276,6 +283,93 @@ function ensureGitWatcher(cwd: string, notify: () => void): void {
 	if (dirs.commonDir !== dirs.gitDir) watchQuietly(dirs.commonDir, false, onChange);
 }
 
+// ── Per-key status formatters ────────────────────────────────────────────────
+// Keyed by the exact string an extension passes to ctx.ui.setStatus(key, ...).
+// Overrides how that extension's raw status text renders here, and — unlike
+// the generic path below — still renders when the source clears its status to
+// "" (e.g. pi-sandbox when disabled), so on/off state stays visible.
+const STATUS_FORMATTERS: Record<string, (raw: string, theme: Theme) => string> = {
+	sandbox: (raw, theme) => {
+		const on = stripVTControlCharacters(raw).trim().length > 0;
+		return on ? hex("#b294bb", "● sandbox") : theme.fg("dim", "○ sandbox");
+	},
+};
+
+// ── Extension status config (persisted, /statusline config) ─────────────────
+// Same flat-JSON-in-~/.pi/agent convention as this repo's other extension
+// state files (sandbox.json, optimizer.json, ...).
+type ExtStatusPosition = "left" | "right";
+
+const STATUS_LINE_CONFIG_FILE = pathJoin(homedir(), ".pi", "agent", "status-line.json");
+
+function loadStatusLineConfig(): { hidden: Set<string>; position: ExtStatusPosition } {
+	try {
+		const data = JSON.parse(readFileSync(STATUS_LINE_CONFIG_FILE, "utf8")) as {
+			hidden?: string[];
+			position?: string;
+		};
+		return {
+			hidden: new Set(data.hidden ?? []),
+			position: data.position === "left" ? "left" : "right",
+		};
+	} catch {
+		return { hidden: new Set(), position: "right" };
+	}
+}
+
+function saveStatusLineConfig(hidden: Set<string>, position: ExtStatusPosition): void {
+	try {
+		mkdirSync(dirname(STATUS_LINE_CONFIG_FILE), { recursive: true });
+		writeFileSync(
+			STATUS_LINE_CONFIG_FILE,
+			JSON.stringify({ hidden: [...hidden].sort(), position }, null, "\t"),
+		);
+	} catch {
+		// Best-effort — the footer still filters/positions correctly this
+		// session even if persistence fails (e.g. read-only home).
+	}
+}
+
+const initialStatusLineConfig = loadStatusLineConfig();
+const hiddenStatuses = initialStatusLineConfig.hidden;
+let extStatusPosition: ExtStatusPosition = initialStatusLineConfig.position;
+
+// Replaces SettingsList's own hardcoded (English) hint line in the config
+// overlay; sized into the box width too so it never truncates.
+const CONFIG_HINT_TEXT = "↑↓ move · space/enter change · esc close";
+
+// ── Bordered overlay box ──────────────────────────────────────────────────────
+// Adapted from @xynogen/pix-pretty's modal-frame (same author's monorepo,
+// used by /optimizer) — inlined rather than imported because a file-based
+// (non-npm) extension can't resolve packages that only live in the shared
+// ~/.pi/agent/npm/node_modules tree.
+function frameBox(lines: string[], width: number, theme: Theme): string[] {
+	const inner = Math.max(1, width - 4); // 2 border cols + 2 padding
+	const dashes = "─".repeat(Math.max(0, width - 2));
+	const border = (s: string) => theme.fg("accent", s);
+	const bg = (s: string) => theme.bg("customMessageBg", s);
+
+	// theme.fg/theme.bold may emit a full reset (\x1b[0m) or bg-reset
+	// (\x1b[49m) inside a line; re-open the box's background afterwards so
+	// those resets don't punch transparent holes in it.
+	const SENTINEL = "\x00";
+	const bgOpen = bg(SENTINEL).split(SENTINEL)[0] ?? "";
+	const reassert = (s: string): string =>
+		bgOpen
+			? s.replace(/\x1b\[([0-9;]*)m/g, (seq, p: string) =>
+					p === "0" || p.split(";").includes("49") ? `${seq}${bgOpen}` : seq,
+				)
+			: s;
+
+	const row = (content: string): string => {
+		const pad = inner - visibleWidth(content);
+		const padded = pad > 0 ? content + " ".repeat(pad) : truncateToWidth(content, inner);
+		return bg(`${border("│")} ${reassert(padded)} ${border("│")}`);
+	};
+
+	return [bg(border(`╭${dashes}╮`)), ...lines.map(row), bg(border(`╰${dashes}╯`))];
+}
+
 // ── Number formatting ────────────────────────────────────────────────────────
 // Compact human-readable counts: 950 -> "950", 5200 -> "5.2k", 42000 -> "42k",
 // 1_200_000 -> "1.2M". One decimal only in the low part of each magnitude band.
@@ -294,6 +388,9 @@ export default function (pi: ExtensionAPI) {
 	let enabled = true;
 	let isWorking = false;
 	let tuiRef: TuiRef = null;
+	// Names seen on the last render, kept so /statusline config can list
+	// extensions even ones currently hidden (and thus absent this frame).
+	let knownStatusNames = new Set<string>();
 
 	function requestRender() {
 		tuiRef?.requestRender?.();
@@ -371,13 +468,21 @@ export default function (pi: ExtensionAPI) {
 						}
 					}
 
-					// Extension statuses (SGR preserved), skip cwd duplicates.
+					// Extension statuses (SGR preserved), skip cwd duplicates and
+					// anything hidden via /statusline config.
 					const extStatuses: string[] = [];
 					const cwdText = stripVTControlCharacters(fmtCwd(ctx.cwd));
 					const sortedStatuses = [...footerData.getExtensionStatuses()].sort(([a], [b]) =>
 						a < b ? -1 : a > b ? 1 : 0,
 					);
-					for (const [, value] of sortedStatuses) {
+					knownStatusNames = new Set(sortedStatuses.map(([name]) => name));
+					for (const [name, value] of sortedStatuses) {
+						if (hiddenStatuses.has(name)) continue;
+						const formatter = STATUS_FORMATTERS[name];
+						if (formatter) {
+							extStatuses.push(sanitizePreservingSgr(formatter(value, theme)));
+							continue;
+						}
 						const text = sanitizePreservingSgr(value);
 						if (hasVisible(text) && stripVTControlCharacters(text).trim() !== cwdText) {
 							extStatuses.push(text);
@@ -388,14 +493,21 @@ export default function (pi: ExtensionAPI) {
 					// Join non-empty blocks with a 2-space separator and, crucially,
 					// no trailing separator — otherwise line 1's right edge sits a
 					// couple of columns short of line 2's and they look misaligned.
-					const right1 = [extStr, stats, ctxStr].filter(Boolean).join("  ");
+					// Extension statuses land on line 1 (right, default) or line 2
+					// (bottom-left) depending on /statusline config.
+					const right1Parts = extStatusPosition === "right" ? [extStr, stats, ctxStr] : [stats, ctxStr];
+					const right1 = right1Parts.filter(Boolean).join("  ");
 					const right2 = `${theme.fg("dim", modelStr)}`;
+					const line2Left = extStatusPosition === "left" ? extStr : "";
 
 					// ── compose ────────────────────────────────────────────
 					const padLen = Math.max(1, width - visibleWidth(left) - visibleWidth(right1));
 					const line1 = truncateToWidth(left + " ".repeat(padLen) + right1, width);
+					const pad2Len = Math.max(1, width - visibleWidth(line2Left) - visibleWidth(right2));
 					const line2 = truncateToWidth(
-						" ".repeat(Math.max(0, width - visibleWidth(right2))) + right2,
+						line2Left
+							? line2Left + " ".repeat(pad2Len) + right2
+							: " ".repeat(Math.max(0, width - visibleWidth(right2))) + right2,
 						width,
 					);
 					return [line1, line2];
@@ -404,9 +516,96 @@ export default function (pi: ExtensionAPI) {
 		});
 	}
 
+	async function openStatusConfig(ctx: ExtensionCommandContext) {
+		const names = [...new Set([...knownStatusNames, ...hiddenStatuses])].sort();
+
+		const positionItem: SettingItem = {
+			id: "__position__",
+			label: "Position",
+			description: "Where to show extension statuses in the footer",
+			currentValue: extStatusPosition === "left" ? "Left" : "Right",
+			values: ["Right", "Left"],
+		};
+		const items: SettingItem[] = [
+			positionItem,
+			...names.map((name) => ({
+				id: name,
+				label: name,
+				currentValue: hiddenStatuses.has(name) ? "Hidden" : "Visible",
+				values: ["Visible", "Hidden"],
+			})),
+		];
+		// Mirror SettingsList's own column layout (prefix 2 + label col + sep 2 +
+		// value col + slack 2) so values never truncate — see settings-list.js
+		// renderMainList: valueMaxWidth = width - (2 + maxLabelWidth + 2) - 2.
+		const maxLabelWidth = Math.min(30, Math.max(...items.map((i) => i.label.length)));
+		const maxValueWidth = Math.max(
+			...items.flatMap((i) => [i.currentValue.length, ...(i.values ?? []).map((v) => v.length)]),
+		);
+		const innerWidth = Math.max(
+			"⚙  Statusline".length,
+			maxLabelWidth + maxValueWidth + 6,
+			visibleWidth(CONFIG_HINT_TEXT),
+		);
+		const boxWidth = Math.min(64, Math.max(28, innerWidth)) + 4; // + 2 border + 2 padding
+
+		await ctx.ui.custom<void>(
+			(_tui, theme, _keybindings, done) => {
+				const settingsTheme: SettingsListTheme = {
+					label: (text, selected) => (selected ? theme.fg("accent", text) : text),
+					value: (text, selected) => (selected ? theme.fg("accent", text) : theme.fg("muted", text)),
+					description: (text) => theme.fg("dim", text),
+					cursor: theme.fg("accent", "→ "),
+					hint: (text) => theme.fg("dim", text),
+				};
+				const list = new SettingsList(
+					items,
+					Math.min(items.length, 10),
+					settingsTheme,
+					(id, newValue) => {
+						if (id === "__position__") {
+							extStatusPosition = newValue === "Left" ? "left" : "right";
+						} else if (newValue === "Hidden") {
+							hiddenStatuses.add(id);
+						} else {
+							hiddenStatuses.delete(id);
+						}
+						saveStatusLineConfig(hiddenStatuses, extStatusPosition);
+						requestRender();
+					},
+					() => done(),
+				);
+				return {
+					render(width: number): string[] {
+						const w = Math.min(boxWidth, width);
+						const title = theme.bold(theme.fg("accent", "⚙  Statusline"));
+						// SettingsList always appends its own (English, hardcoded) hint
+						// as the last two lines ("" + hint text) — no theme hook to
+						// override the string itself, so swap it for a French one here.
+						const listLines = list.render(w - 4).slice(0, -2);
+						const hint = theme.fg("dim", CONFIG_HINT_TEXT);
+						return frameBox([title, "", ...listLines, "", hint], w, theme);
+					},
+					invalidate() {
+						list.invalidate();
+					},
+					handleInput(data: string) {
+						list.handleInput(data);
+					},
+				};
+			},
+			{ overlay: true, overlayOptions: { anchor: "center", width: boxWidth, maxHeight: "80%" } },
+		);
+	}
+
 	pi.registerCommand("statusline", {
-		description: "Toggle custom footer",
-		handler: async (_args, ctx) => {
+		description: "Toggle custom footer, or `config` to choose which extension statuses show and where",
+		handler: async (args, ctx) => {
+			if (args.trim() === "config") {
+				await openStatusConfig(ctx);
+				return;
+			}
+
 			enabled = !enabled;
 			if (enabled) {
 				installFooter(ctx);

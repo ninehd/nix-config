@@ -12,7 +12,8 @@
       ]
     },
     "npm:@ayulab/pi-rewind",
-    "npm:@narumitw/pi-plan-mode"
+    "npm:@narumitw/pi-plan-mode",
+    "npm:pi-sandbox"
   ],
   "enableInstallTelemetry": false,
   "treeFilterMode": "default",
