@@ -70,3 +70,4 @@ ghostty and Brave get hardware acceleration instead of falling back to
 software rendering), then registers the Nix zsh as login shell (`/etc/shells`
 + `chsh`) — the GPU and login-shell steps are system-level and cannot be
 managed by home-manager directly.
+

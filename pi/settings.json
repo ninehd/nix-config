@@ -11,9 +11,13 @@
         "+src/index.ts"
       ]
     },
-    "npm:@ayulab/pi-rewind",
     "npm:@narumitw/pi-plan-mode",
-    "npm:pi-sandbox"
+    {
+      "source": "npm:pi-sandbox",
+      "extensions": [
+        "+index.ts"
+      ]
+    }
   ],
   "enableInstallTelemetry": false,
   "treeFilterMode": "default",
@@ -23,5 +27,9 @@
   "compaction": {
     "enabled": true
   },
-  "editorPaddingX": 0
+  "editorPaddingX": 0,
+  "extensions": [
+    "+extensions/startup/index.ts",
+    "+extensions/styled-outputs/index.ts"
+  ]
 }
