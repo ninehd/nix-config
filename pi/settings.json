@@ -11,7 +11,8 @@
         "+src/index.ts"
       ]
     },
-    "npm:@ayulab/pi-rewind"
+    "npm:@ayulab/pi-rewind",
+    "npm:@narumitw/pi-plan-mode"
   ],
   "enableInstallTelemetry": false,
   "treeFilterMode": "default",
