@@ -1,14 +1,25 @@
 {
   "lastChangelogVersion": "0.81.1",
   "theme": "dark",
-  "defaultProvider": "github-copilot",
-  "defaultModel": "claude-opus-4.8",
-  "defaultThinkingLevel": "medium",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "deepseek-v4-pro",
+  "defaultThinkingLevel": "high",
   "packages": [
-    "npm:pi-caveman"
+    {
+      "source": "npm:@xynogen/pix-optimizer",
+      "extensions": [
+        "+src/index.ts"
+      ]
+    },
+    "npm:@ayulab/pi-rewind"
   ],
   "enableInstallTelemetry": false,
   "treeFilterMode": "default",
-  "skills": [
-  ]
+  "skills": [],
+  "showHardwareCursor": false,
+  "enableSkillCommands": true,
+  "compaction": {
+    "enabled": true
+  },
+  "editorPaddingX": 0
 }
