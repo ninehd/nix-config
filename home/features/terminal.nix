@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
   fonts.fontconfig.enable = true; # so fontconfig picks up fonts from the nix profile (needed for IntelliJ's terminal)
@@ -7,6 +7,25 @@
     jetbrains-mono # font used by ghostty's settings.font-family below
     nerd-fonts.symbols-only # nerd font icons fallback, needed for IntelliJ terminal (Ghostty falls back to this automatically already)
   ];
+
+  # Two built-in ghostty themes (see `ghostty +list-themes`), selected via the
+  # `theme-active.conf` symlink below. Toggle with `ghostty-dark`/`ghostty-light`
+  # shell functions, then reload with the default ctrl+shift+, keybind.
+  home.file.".config/ghostty/themes/dark.conf".text = ''
+    theme = TokyoNight Night
+  '';
+
+  home.file.".config/ghostty/themes/light.conf".text = ''
+    theme = Dayfox
+  '';
+
+  # theme-active.conf is a mutable symlink, not managed by home-manager directly,
+  # so switching themes at runtime survives future `home-manager switch` runs.
+  # Only created if missing, defaulting to dark.
+  home.activation.ghosttyThemeDefault = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    target="$HOME/.config/ghostty/theme-active.conf"
+    [ -e "$target" ] || ln -sf "$HOME/.config/ghostty/themes/dark.conf" "$target"
+  '';
 
   programs.ghostty = {
     enable = true;
@@ -28,31 +47,8 @@
       # Keybindings
       keybind = "f11=toggle_fullscreen";
 
-      # Color scheme from omarchy theme
-      background = "1a1b26";
-      foreground = "a9b1d6";
-      selection-background = "292e42";
-      selection-foreground = "c0caf5";
-
-      # Normal colors (0-7) + bright colors (8-15)
-      palette = [
-        "0=#0e0e14"
-        "1=#f7768e"
-        "2=#9ece6a"
-        "3=#e0af68"
-        "4=#7aa2f7"
-        "5=#ad8ee6"
-        "6=#449dab"
-        "7=#a9b1d6"
-        "8=#414868"
-        "9=#ff7a93"
-        "10=#b9f27c"
-        "11=#ff9e64"
-        "12=#7da6ff"
-        "13=#bb9af7"
-        "14=#0db9d7"
-        "15=#c0caf5"
-      ];
+      # Color scheme, see themes/dark.conf and themes/light.conf above
+      config-file = "theme-active.conf";
     };
   };
 }

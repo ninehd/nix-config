@@ -97,6 +97,11 @@
       }
       zstyle :bracketed-paste-magic paste-init pasteinit
       zstyle :bracketed-paste-magic paste-finish pastefinish
+
+      # Manual light/dark toggle for ghostty (see home/features/terminal.nix).
+      # Flips the theme-active.conf symlink; press ctrl+shift+, in ghostty to reload.
+      ghostty-dark() { ln -sf "$HOME/.config/ghostty/themes/dark.conf" "$HOME/.config/ghostty/theme-active.conf"; }
+      ghostty-light() { ln -sf "$HOME/.config/ghostty/themes/light.conf" "$HOME/.config/ghostty/theme-active.conf"; }
     '';
   };
 

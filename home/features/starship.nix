@@ -17,20 +17,12 @@ in
 
       format = "$username$hostname$directory$git_branch$git_commit$git_state$git_status$time$line_break$python$character";
 
-      palette = "tokyo_night";
-
-      palettes.tokyo_night = {
-        color_bg = "#1a1b26";
-        color_fg0 = "#c0caf5";
-        color_blue = "#7aa2f7";
-        color_purple = "#bb9af7";
-        color_green = "#9ece6a";
-        color_red = "#f38ba8";
-        color_orange = "#ff9e64";
-      };
+      # No custom hex palette: styles below use the 16 standard ANSI color
+      # names, so the prompt follows whichever ghostty theme is active
+      # (dark/light) instead of being locked to fixed hex values.
 
       directory = {
-        style = "fg:color_green";
+        style = "fg:green";
         format = "[$path ]($style)";
         truncation_length = 3;
         truncation_symbol = "…/";
@@ -52,32 +44,32 @@ in
       git_branch = {
         symbol = "";
         style = "";
-        format = "on [[$symbol $branch ](fg:color_red)]($style)";
+        format = "on [[$symbol $branch ](fg:red)]($style)";
       };
 
       git_commit = {
         style = "";
-        format = "${bs}[ ](bg:$style)[\\($hash$tag\\)](fg:color_red bg:$style)";
+        format = "${bs}[ ](bg:$style)[\\($hash$tag\\)](fg:red bg:$style)";
       };
 
       git_state = {
         style = "";
-        format = "${bs}[ ](bg:$style)[ \\($state( $progress_current/$progress_total)\\)](fg:color_red bg:$style)";
+        format = "${bs}[ ](bg:$style)[ \\($state( $progress_current/$progress_total)\\)](fg:red bg:$style)";
       };
 
       git_status = {
         style = "";
-        format = "(${bs}[ ](bg:$style fg:color_red)$conflicted$staged$modified$renamed$deleted$untracked$ahead_behind$stashed($style))";
-        conflicted = "[ ](bold fg:color_red)[  \${count} ](fg:color_red)";
-        staged = "[ $count ](fg:color_red)";
-        modified = "[󰏫 \${count} ](fg:color_red)";
-        renamed = "[ \${count} ](fg:color_red)";
-        deleted = "[ \${count} ](fg:color_red)";
-        untracked = "[ \${count} ](fg:color_red)";
-        stashed = "[ \${count} ](fg:color_red)";
-        ahead = "[ \${count} ](fg:color_red)";
-        behind = "[ \${count} ](fg:color_red)";
-        diverged = "[ ](fg:color_red)[ נּ ](fg:color_red)[ \${ahead_count} ](fg:color_red)[ \${behind_count} ](fg:color_red)";
+        format = "(${bs}[ ](bg:$style fg:red)$conflicted$staged$modified$renamed$deleted$untracked$ahead_behind$stashed($style))";
+        conflicted = "[ ](bold fg:red)[  \${count} ](fg:red)";
+        staged = "[ $count ](fg:red)";
+        modified = "[󰏫 \${count} ](fg:red)";
+        renamed = "[ \${count} ](fg:red)";
+        deleted = "[ \${count} ](fg:red)";
+        untracked = "[ \${count} ](fg:red)";
+        stashed = "[ \${count} ](fg:red)";
+        ahead = "[ \${count} ](fg:red)";
+        behind = "[ \${count} ](fg:red)";
+        diverged = "[ ](fg:red)[ נּ ](fg:red)[ \${ahead_count} ](fg:red)[ \${behind_count} ](fg:red)";
       };
 
       cmd_duration = {
@@ -95,12 +87,12 @@ in
       time = {
         disabled = false;
         time_format = "%R";
-        format = "[at $time ](fg:color_fg0)";
+        format = "[at $time ](fg:white)";
       };
 
       username = {
         show_always = true;
-        style_user = "fg:color_blue";
+        style_user = "fg:blue";
         format = "[$user]($style) in ";
       };
     };
