@@ -202,16 +202,16 @@ function readGit(cwd: string): GitInfo {
 		// Build the status label with starship icons.
 		const parts: string[] = [];
 		if (ahead > 0 && behind > 0) {
-			parts.push(`${GIT_ICONS.diverged} ${GIT_ICONS.ahead}${ahead} ${GIT_ICONS.behind}${behind}`);
+			parts.push(`${GIT_ICONS.diverged} ${GIT_ICONS.ahead} ${ahead} ${GIT_ICONS.behind} ${behind}`);
 		} else if (ahead > 0) {
-			parts.push(`${GIT_ICONS.ahead}${ahead}`);
+			parts.push(`${GIT_ICONS.ahead} ${ahead}`);
 		} else if (behind > 0) {
-			parts.push(`${GIT_ICONS.behind}${behind}`);
+			parts.push(`${GIT_ICONS.behind} ${behind}`);
 		}
-		if (conflicted) parts.push(`${GIT_ICONS.conflicted}${conflicted}`);
-		if (staged) parts.push(`${GIT_ICONS.staged}${staged}`);
-		if (modified) parts.push(`${GIT_ICONS.modified}${modified}`);
-		if (untracked) parts.push(`${GIT_ICONS.untracked}${untracked}`);
+		if (conflicted) parts.push(`${GIT_ICONS.conflicted} ${conflicted}`);
+		if (staged) parts.push(`${GIT_ICONS.staged} ${staged}`);
+		if (modified) parts.push(`${GIT_ICONS.modified} ${modified}`);
+		if (untracked) parts.push(`${GIT_ICONS.untracked} ${untracked}`);
 		const label = parts.length ? `[${parts.join(" ")}]` : "";
 
 		return store({ branch, label });
