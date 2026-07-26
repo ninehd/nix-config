@@ -61,15 +61,15 @@ in
         style = "";
         format = "(${bs}[ ](bg:$style fg:red)[\\[$conflicted$staged$modified$renamed$deleted$untracked$ahead_behind$stashed${bs}\\]](fg:red) )";
         conflicted = "[ ](bold fg:red)[ \${count} ](fg:red)";
-        staged = "[$count ](fg:red)";
-        modified = "[󰏫\${count} ](fg:red)";
-        renamed = "[\${count} ](fg:red)";
-        deleted = "[\${count} ](fg:red)";
-        untracked = "[\${count} ](fg:red)";
-        stashed = "[\${count} ](fg:red)";
-        ahead = "[\${count} ](fg:red)";
-        behind = "[\${count} ](fg:red)";
-        diverged = "[ ](fg:red)[ נּ ](fg:red)[\${ahead_count} ](fg:red)[\${behind_count} ](fg:red)";
+        staged = "[ \$count ](fg:red)";
+        modified = "[󰏫 \${count} ](fg:red)";
+        renamed = "[ \${count} ](fg:red)";
+        deleted = "[ \${count} ](fg:red)";
+        untracked = "[ \${count} ](fg:red)";
+        stashed = "[ \${count} ](fg:red)";
+        ahead = "[ \${count} ](fg:red)";
+        behind = "[ \${count} ](fg:red)";
+        diverged = "[ ](fg:red)[ נּ ](fg:red)[ \${ahead_count} ](fg:red)[ \${behind_count} ](fg:red)";
       };
 
       cmd_duration = {
