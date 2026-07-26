@@ -1,5 +1,7 @@
 import { execSync } from "node:child_process";
+import { existsSync, watch as fsWatch } from "node:fs";
 import { homedir } from "node:os";
+import { join as pathJoin, resolve as pathResolve } from "node:path";
 import { stripVTControlCharacters } from "node:util";
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
@@ -90,9 +92,13 @@ function fmtCwd(cwd: string): string {
 }
 
 // ── Git status (porcelain v1 -b) ─────────────────────────────────────────────
+// Freshness comes from two layers: an fs.watch on .git metadata invalidates
+// the cache the instant a commit/checkout/stage happens (see ensureGitWatcher
+// below); GIT_CACHE_MS is just the safety-net TTL for anything the watcher
+// can't see (e.g. working-tree edits from outside pi).
 type GitInfo = { branch: string; label: string } | null;
 let gitCache: { cwd: string; value: GitInfo; ts: number } | undefined;
-const GIT_CACHE_MS = 5000;
+const GIT_CACHE_MS = 2000;
 
 // Starship-style git icons
 const GIT_ICONS = {
@@ -193,6 +199,83 @@ function readGit(cwd: string): GitInfo {
 	}
 }
 
+// ── Git watcher (event-driven cache invalidation) ────────────────────────────
+// One-time setup per cwd. Watches .git metadata so the footer updates the
+// instant something changes, instead of waiting out GIT_CACHE_MS.
+const watchedGitCwds = new Set<string>();
+
+function resolveGitDirs(cwd: string): { gitDir: string; commonDir: string } | null {
+	try {
+		// --git-dir is per-worktree (HEAD/index/MERGE_HEAD live there);
+		// --git-common-dir is shared across worktrees (refs/heads live there).
+		const gitDir = execSync("git rev-parse --git-dir", {
+			cwd,
+			timeout: 2000,
+			encoding: "utf8",
+			stdio: "pipe",
+		}).trim();
+		const commonDir = execSync("git rev-parse --git-common-dir", {
+			cwd,
+			timeout: 2000,
+			encoding: "utf8",
+			stdio: "pipe",
+		}).trim();
+		return { gitDir: pathResolve(cwd, gitDir), commonDir: pathResolve(cwd, commonDir) };
+	} catch {
+		return null;
+	}
+}
+
+// fs.watch emits 'error' asynchronously on some platforms/limits (EMFILE,
+// ENOSPC from inotify watch limits); an unhandled 'error' on an EventEmitter
+// throws, so every watcher needs a no-op listener to degrade to TTL polling
+// instead of crashing the process.
+function watchQuietly(path: string, recursive: boolean, onChange: () => void): void {
+	try {
+		const watcher = fsWatch(path, { recursive }, onChange);
+		watcher.on("error", () => watcher.close());
+	} catch {
+		// Unwatchable (missing, permission, no recursive support) — TTL covers it.
+	}
+}
+
+function ensureGitWatcher(cwd: string, notify: () => void): void {
+	if (watchedGitCwds.has(cwd)) return;
+	const dirs = resolveGitDirs(cwd);
+	if (!dirs) return;
+	watchedGitCwds.add(cwd);
+
+	let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+	const onChange = () => {
+		if (debounceTimer) clearTimeout(debounceTimer);
+		// Git touches several files per operation (e.g. commit writes HEAD,
+		// the branch ref, and logs/HEAD) — debounce to one invalidation.
+		debounceTimer = setTimeout(() => {
+			if (gitCache?.cwd === cwd) gitCache = undefined;
+			notify();
+		}, 250);
+	};
+
+	// Per-worktree gitdir: catches HEAD, index (staging), MERGE_HEAD.
+	watchQuietly(dirs.gitDir, false, onChange);
+
+	// Shared refs: branch creation/switch/commit. Recursive is needed for
+	// branch names containing "/" (e.g. "feature/foo"); fall back to a flat
+	// watch (misses nested names, still catches top-level branches).
+	const refsHeads = pathJoin(dirs.commonDir, "refs", "heads");
+	if (existsSync(refsHeads)) {
+		try {
+			const watcher = fsWatch(refsHeads, { recursive: true }, onChange);
+			watcher.on("error", () => watcher.close());
+		} catch {
+			watchQuietly(refsHeads, false, onChange);
+		}
+	}
+
+	// packed-refs etc.; skip if identical to gitDir (non-worktree repos).
+	if (dirs.commonDir !== dirs.gitDir) watchQuietly(dirs.commonDir, false, onChange);
+}
+
 // ── Number formatting ────────────────────────────────────────────────────────
 // Compact human-readable counts: 950 -> "950", 5200 -> "5.2k", 42000 -> "42k",
 // 1_200_000 -> "1.2M". One decimal only in the low part of each magnitude band.
@@ -254,6 +337,7 @@ export default function (pi: ExtensionAPI) {
 					const cwdLabel = theme.fg("success", fmtCwd(ctx.cwd));
 
 					let gitStr = "";
+					ensureGitWatcher(ctx.cwd, requestRender);
 					const gitInfo = readGit(ctx.cwd);
 					if (gitInfo) {
 						const icon = hex("#8abeb7", GIT_ICONS.branch);
