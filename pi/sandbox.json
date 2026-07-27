@@ -1,0 +1,73 @@
+{
+  "enabled": true,
+  "network": {
+    "allowNetwork": true,
+    "allowLocalBinding": true,
+    "allowAllUnixSockets": false,
+    "allowUnixSockets": [],
+    "allowedDomains": [
+      "npmjs.org", "*.npmjs.org", "registry.npmjs.org", "registry.yarnpkg.com",
+      "pypi.org", "*.pypi.org", "files.pythonhosted.org",
+      "crates.io", "*.crates.io", "static.crates.io",
+      "github.com", "*.github.com", "api.github.com", "raw.githubusercontent.com",
+      "objects.githubusercontent.com", "codeload.github.com",
+      "gitlab.com", "*.gitlab.com",
+      "docker.io", "*.docker.io", "registry-1.docker.io", "*.docker.com",
+      "cache.nixos.org", "channels.nixos.org", "*.nixos.org",
+      "api.anthropic.com", "console.anthropic.com",
+      "storage.googleapis.com", "*.googleapis.com",
+      "huggingface.co", "*.huggingface.co",
+      "deb.debian.org", "archive.ubuntu.com",
+      "cdn.jsdelivr.net", "unpkg.com"
+    ],
+    "deniedDomains": []
+  },
+  "filesystem": {
+    "denyRead": [
+      "/Users",
+      "/home",
+      "~/.ssh",
+      "~/.aws",
+      "~/.gnupg",
+      "~/.kube",
+      "~/.pi/agent/sandbox.json"
+    ],
+    "allowRead": [
+      ".",
+      "~"
+    ],
+    "allowWrite": [
+      ".",
+      "/dev/null",
+      "/tmp",
+      "~/.local",
+      "~/.cache"
+    ],
+    "denyWrite": [
+      "**/.env",
+      "**/.env.*",
+      "**/*.pem",
+      "**/*.key",
+      "~/.ssh/**",
+      "~/.aws/**",
+      "~/.gnupg/**",
+      "~/.kube/**",
+      "~/.bashrc",
+      "~/.bash_profile",
+      "~/.zshrc",
+      "~/.zprofile",
+      "~/.profile",
+      "~/.gitconfig",
+      "~/.mcp.json",
+      "~/.npmrc",
+      "~/.pypirc",
+      ".pi/sandbox.json",
+      "~/.pi/agent/sandbox.json"
+    ]
+  },
+  "windows": {
+    "backend": "appContainer",
+    "appContainerMode": "standard",
+    "allowLoopback": false
+  }
+}
