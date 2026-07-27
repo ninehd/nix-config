@@ -25,7 +25,6 @@
   "filesystem": {
     "denyRead": [
       "/Users",
-      "/home",
       "~/.ssh",
       "~/.aws",
       "~/.gnupg",
