@@ -110,7 +110,7 @@ export default function styledOutputs(pi: ExtensionAPI) {
   if (!userProto[PATCH_FLAG]) {
     const originalUserRender = userProto.render;
     userProto.render = function patchedUserRender(width: number) {
-      const contentBox = this.contentBox;
+      const contentBox = this.children?.[0];
       if (contentBox?.children && !this._styledReplaced) {
         for (let i = 0; i < contentBox.children.length; i++) {
           const child = contentBox.children[i];
