@@ -14,7 +14,6 @@
     glab
     pnpm
     fnm # Node version manager — installs/switches Node per-project, no pkgs.nodejs pin here
-    jdk25
     vscode
   ];
 
