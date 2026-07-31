@@ -5,12 +5,6 @@
   "defaultModel": "deepseek-v4-pro",
   "defaultThinkingLevel": "high",
   "packages": [
-    {
-      "source": "npm:@xynogen/pix-optimizer",
-      "extensions": [
-        "+src/index.ts"
-      ]
-    },
     "npm:@narumitw/pi-plan-mode",
     {
       "source": "npm:pi-sandbox",
@@ -30,6 +24,7 @@
   "editorPaddingX": 0,
   "extensions": [
     "+extensions/startup/index.ts",
-    "+extensions/styled-outputs/index.ts"
+    "+extensions/styled-outputs/index.ts",
+    "+extensions/optimizer/index.ts"
   ]
 }
