@@ -197,7 +197,14 @@ describe("buildPrompt", () => {
 		const lite = buildPrompt("lite");
 		const ultra = buildPrompt("ultra");
 		expect(lite).toContain("Keep articles");
-		expect(ultra).toContain("Abbreviate");
-		expect(lite).not.toContain("Abbreviate");
+		expect(ultra).toContain("Strip conjunctions");
+		expect(lite).not.toContain("Strip conjunctions");
+	});
+
+	it("ultra forbids invented abbreviations and arrows (no real token savings)", () => {
+		const ultra = buildPrompt("ultra");
+		expect(ultra).toContain("NO prose abbreviations");
+		expect(ultra).toContain("NO");
+		expect(ultra).toContain("arrows");
 	});
 });
