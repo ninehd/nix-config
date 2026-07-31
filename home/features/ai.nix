@@ -14,5 +14,6 @@
       run ln -sfn "${config.home.homeDirectory}/nix-config/pi/extensions" "$HOME/.pi/agent/extensions"
       run ln -sfn "${config.home.homeDirectory}/nix-config/pi/themes" "$HOME/.pi/agent/themes"
       run ln -sfn "${config.home.homeDirectory}/nix-config/pi/prompts" "$HOME/.pi/agent/prompts"
+      run ln -sfn "${config.home.homeDirectory}/nix-config/pi/skills" "$HOME/.pi/agent/skills"
     '';
 }
