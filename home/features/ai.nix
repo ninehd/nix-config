@@ -1,8 +1,11 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, pkgs-pi, ... }:
 
 {
   config.programs.pi-coding-agent = {
     enable = true;
+    # pi itself comes from the dedicated nixpkgs-pi pin (bump in isolation
+    # with `nix flake update nixpkgs-pi`). Everything else stays on nixpkgs.
+    package = pkgs-pi.pi-coding-agent;
     extraPackages = [ pkgs.nodejs pkgs.bun pkgs.rtk ];
   };
 

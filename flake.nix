@@ -4,6 +4,10 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
+    # Dedicated nixpkgs pin for pi only, so pi can be bumped in isolation
+    # via `nix flake update nixpkgs-pi` without touching the rest.
+    nixpkgs-pi.url = "github:nixos/nixpkgs/nixos-unstable";
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -29,19 +33,21 @@
           "discord"
         ];
       };
+      # pi package from its own pinned nixpkgs.
+      pkgs-pi = import inputs.nixpkgs-pi { inherit system; };
     in
     {
       homeConfigurations."endeavour" =
         home-manager.lib.homeManagerConfiguration {
           inherit pkgs;
-          extraSpecialArgs = { inherit inputs; };
+          extraSpecialArgs = { inherit inputs pkgs-pi; };
           modules = [ ./hosts/endeavour.nix ];
         };
 
       homeConfigurations."wsl" =
         home-manager.lib.homeManagerConfiguration {
           inherit pkgs;
-          extraSpecialArgs = { inherit inputs; };
+          extraSpecialArgs = { inherit inputs pkgs-pi; };
           modules = [ ./hosts/wsl.nix ];
         };
     };
