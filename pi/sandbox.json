@@ -1,5 +1,5 @@
 {
-  "enabled": true,
+  "enabled": false,
   "network": {
     "allowNetwork": true,
     "allowLocalBinding": true,
