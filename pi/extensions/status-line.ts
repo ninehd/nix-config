@@ -17,11 +17,11 @@ import { type SettingItem, type SettingsListTheme, SettingsList, truncateToWidth
  *
  * Layout (position: right, the default):
  *   line 1: ~/project  on   main [ ...]        [ext icons]  ↑5k  ↓2k  $0.01  2.4%/1.0M
- *   line 2:                                                              model • level
+ *   line 2:                                                     provider/model • level
  *
  * Layout (position: left):
  *   line 1: ~/project  on   main [ ...]                    ↑5k  ↓2k  $0.01  2.4%/1.0M
- *   line 2: [ext icons]                                                model • level
+ *   line 2: [ext icons]                                       provider/model • level
  *
  * Statuses published by other extensions are rendered with their original
  * ANSI colors preserved (see sanitizePreservingSgr).
@@ -445,7 +445,7 @@ export default function (pi: ExtensionAPI) {
 					}
 
 					// ── model ─────────────────────────────────────────────
-					let modelStr = ctx.model?.id ?? "no-model";
+					let modelStr = ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : "no-model";
 					if (ctx.model?.reasoning) {
 						const level = thinkingLevel ?? "off";
 						modelStr += level === "off" ? " • thinking off" : ` • ${level}`;

@@ -1,9 +1,9 @@
 {
-  "lastChangelogVersion": "0.82.1",
+  "lastChangelogVersion": "0.83.0",
   "theme": "ansi-dark",
   "defaultProvider": "github-copilot",
   "defaultModel": "claude-opus-4.8",
-  "defaultThinkingLevel": "high",
+  "defaultThinkingLevel": "max",
   "packages": [
     "npm:@narumitw/pi-plan-mode",
     {
