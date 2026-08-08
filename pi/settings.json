@@ -1,9 +1,9 @@
 {
   "lastChangelogVersion": "0.83.0",
   "theme": "ansi-dark",
-  "defaultProvider": "github-copilot",
-  "defaultModel": "claude-opus-4.8",
-  "defaultThinkingLevel": "max",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.5",
+  "defaultThinkingLevel": "xhigh",
   "packages": [
     "npm:@narumitw/pi-plan-mode",
     {
