@@ -12,6 +12,7 @@ flake.nix              # flake entry point, defines hosts
 hosts/
   endeavour.nix        # EndeavourOS host (home path, Linux tweaks)
   wsl.nix              # WSL host (home path, drops brave/discord/ghostty)
+nvim/                  # AstroNvim config linked to ~/.config/nvim
 home/
   common.nix           # shared by every machine
   features/
@@ -26,7 +27,7 @@ home/
     ai.nix             # pi-coding-agent
     tools.nix          # misc CLI tools (curl, jq, ripgrep, fd, gh, vscode…)
     rust.nix           # Rust toolchain via oxalica/rust-overlay
-    nixvim.nix         # Neovim configured declaratively (nixvim)
+    astronvim.nix      # Neovim binary/deps via Nix; links nvim/ to ~/.config/nvim
 ```
 
 ## Hosts
