@@ -15,6 +15,7 @@
     ./features/discord.nix
     ./features/ai.nix
     ./features/tools.nix
+    ./features/rust.nix
     ./features/nixvim.nix
     ./features/gc.nix
   ];

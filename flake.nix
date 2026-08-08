@@ -17,6 +17,11 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ nixpkgs, home-manager, ... }:
@@ -24,6 +29,7 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs {
         inherit system;
+        overlays = [ inputs.rust-overlay.overlays.default ];
         # idea (IntelliJ Ultimate) is unfree; scope the allowance to it
         # instead of a blanket allowUnfree.
         config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [

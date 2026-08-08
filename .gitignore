@@ -4,3 +4,6 @@ result-*
 
 # direnv cache (if you adopt it later)
 .direnv/
+
+# Local pi extension state
+pi/extensions/herdr-agent-state.ts

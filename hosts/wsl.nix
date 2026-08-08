@@ -16,10 +16,11 @@
   # Target of the `hms` alias (see home/features/zsh.nix).
   home.sessionVariables.FLAKE = "${config.home.homeDirectory}/nix-config#wsl";
 
-  # Brave, Discord, Ghostty, and Git aren't needed here (WSL uses the Windows
-  # terminal and Git installation instead).
+  # Brave, Discord, Ghostty, Git, and Rust aren't needed here (WSL uses the
+  # Windows terminal/Git/toolchains instead).
   programs.brave.enable = lib.mkForce false;
   programs.ghostty.enable = lib.mkForce false;
   programs.git.enable = lib.mkForce false;
   home.discord.enable = false;
+  home.rust.enable = false;
 }

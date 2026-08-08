@@ -25,6 +25,7 @@ home/
     discord.nix        # Discord (home.discord.enable toggle, default on)
     ai.nix             # pi-coding-agent
     tools.nix          # misc CLI tools (curl, jq, ripgrep, fd, gh, vscode…)
+    rust.nix           # Rust toolchain via oxalica/rust-overlay
     nixvim.nix         # Neovim configured declaratively (nixvim)
 ```
 
@@ -33,8 +34,9 @@ home/
 - **endeavour** — EndeavourOS, everything enabled.
 - **wsl** — WSL (home path `/home/wdhenin`), overrides in `hosts/wsl.nix`:
   Brave and Ghostty forced off (`lib.mkForce false`), Discord off via
-  `home.discord.enable = false`. Chrome and JetBrains IDEA stay enabled —
-  used directly from WSL rather than through the Windows host.
+  `home.discord.enable = false`, Rust off via `home.rust.enable = false`.
+  Chrome and JetBrains IDEA stay enabled — used directly from WSL rather than
+  through the Windows host.
 
 ## Daily usage
 
