@@ -53,6 +53,10 @@ return {
     optional = true,
     ---@type AstroLSPOpts
     opts = {
+      formatting = {
+        timeout_ms = 10000,
+        disabled = { "kotlin_lsp" },
+      },
       config = {
         kotlin_lsp = {
           single_file_support = false,
