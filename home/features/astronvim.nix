@@ -14,6 +14,7 @@ in
     git
     gcc
     gnumake
+    go
     ripgrep
     fd
     unzip
