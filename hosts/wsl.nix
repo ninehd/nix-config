@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   # Machine-specific entry point for WSL. Pulls in the shared config, then
@@ -15,6 +15,9 @@
 
   # Target of the `hms` alias (see home/features/zsh.nix).
   home.sessionVariables.FLAKE = "${config.home.homeDirectory}/nix-config#wsl";
+
+  # Python with ensurepip/venv for WSL tools expecting a full Python.
+  home.packages = [ pkgs.python312 ];
 
   # Brave, Discord, Ghostty, Git, and Rust aren't needed here (WSL uses the
   # Windows terminal/Git/toolchains instead).
