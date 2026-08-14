@@ -2,8 +2,8 @@
   "lastChangelogVersion": "0.83.0",
   "theme": "ansi-dark",
   "defaultProvider": "github-copilot",
-  "defaultModel": "gpt-5.4",
-  "defaultThinkingLevel": "xhigh",
+  "defaultModel": "claude-sonnet-4.6",
+  "defaultThinkingLevel": "max",
   "packages": [
     "npm:@narumitw/pi-plan-mode",
     {

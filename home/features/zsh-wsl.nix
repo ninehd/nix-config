@@ -8,10 +8,12 @@
     sessionVariables = {
       XCURSOR_SIZE = 16;
 
-      # Mirrored networking shares the Windows host's loopback, so X410 is
-      # reachable over plain TCP -- no VSOCK/socat relay.
-      DISPLAY = "127.0.0.1:0.0";
-      XDG_CURRENT_DESKTOP = "X410";
+      # WSLg provides DISPLAY/WAYLAND_DISPLAY/PULSE_SERVER dynamically.
+      # Don't override them here.
+
+      # Windows Terminal isn't auto-detected by pi's startup extension.
+      # Force Nerd Font glyphs when the Windows-side terminal font supports them.
+      FOOTER_NERD_FONTS = "1";
     };
 
     initContent = ''

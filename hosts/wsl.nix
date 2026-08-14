@@ -19,6 +19,12 @@
   # Python with ensurepip/venv for WSL tools expecting a full Python.
   home.packages = [ pkgs.python312 ];
 
+  # WSLg apps should prefer JetBrains Mono and fall back to Nerd Font glyphs.
+  fonts.fontconfig.defaultFonts.monospace = [
+    "JetBrains Mono"
+    "Symbols Nerd Font Mono"
+  ];
+
   # Brave, Chrome, Discord, Ghostty, JetBrains IDEA, Maven, Gradle, and
   # Nix-managed Git/Rust aren't needed here (WSL uses Windows apps/toolchains
   # instead).
