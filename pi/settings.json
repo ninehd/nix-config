@@ -1,9 +1,9 @@
 {
   "lastChangelogVersion": "0.83.0",
   "theme": "ansi-dark",
-  "defaultProvider": "github-copilot",
-  "defaultModel": "claude-sonnet-4.6",
-  "defaultThinkingLevel": "max",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "grok-4.5",
+  "defaultThinkingLevel": "high",
   "packages": [
     "npm:@narumitw/pi-plan-mode",
     {
