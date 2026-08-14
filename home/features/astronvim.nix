@@ -8,10 +8,10 @@ let
   };
 in
 {
+  # Git comes from host config or external install, not AstroNvim.
   home.packages = with pkgs; [
     neovim
 
-    git
     gcc
     gnumake
     go
