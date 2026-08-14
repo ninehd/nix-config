@@ -19,9 +19,10 @@
   # Python with ensurepip/venv for WSL tools expecting a full Python.
   home.packages = [ pkgs.python312 ];
 
-  # Brave, Discord, Ghostty, Git, JetBrains IDEA, and Rust aren't needed
-  # here (WSL uses the Windows terminal/Git/toolchains instead).
+  # Brave, Chrome, Discord, Ghostty, Git, JetBrains IDEA, and Rust aren't
+  # needed here (WSL uses Windows apps/toolchains instead).
   programs.brave.enable = lib.mkForce false;
+  programs.google-chrome.enable = lib.mkForce false;
   programs.ghostty.enable = lib.mkForce false;
   programs.git.enable = lib.mkForce false;
   home.discord.enable = false;

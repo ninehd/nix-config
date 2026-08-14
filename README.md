@@ -11,7 +11,7 @@ the system itself stays managed by the distro (pacman on EndeavourOS).
 flake.nix              # flake entry point, defines hosts
 hosts/
   endeavour.nix        # EndeavourOS host (home path, Linux tweaks)
-  wsl.nix              # WSL host (home path, drops brave/discord/ghostty)
+  wsl.nix              # WSL host (home path, drops Linux-only GUI/tools)
 nvim/                  # AstroNvim config linked to ~/.config/nvim
 home/
   common.nix           # shared by every machine
@@ -34,11 +34,10 @@ home/
 
 - **endeavour** — EndeavourOS, everything enabled.
 - **wsl** — WSL (home path `/home/wdhenin`), overrides in `hosts/wsl.nix`:
-  Brave and Ghostty forced off (`lib.mkForce false`), Discord off via
+  Brave, Chrome, and Ghostty forced off (`lib.mkForce false`), Git off via
+  `programs.git.enable = lib.mkForce false`, Discord off via
   `home.discord.enable = false`, JetBrains IDEA off via
   `home.jetbrains.enable = false`, Rust off via `home.rust.enable = false`.
-  Chrome stays enabled — used directly from WSL rather than through the
-  Windows host.
 
 ## Daily usage
 
