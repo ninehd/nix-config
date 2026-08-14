@@ -22,7 +22,7 @@ home/
     brave.nix          # Brave browser (binary + config via Nix)
     chrome.nix         # Google Chrome (binary only, extensions installed manually)
     git.nix            # git config
-    jetbrains.nix      # IntelliJ IDEA Ultimate (binary only)
+    jetbrains.nix      # IntelliJ IDEA Ultimate (home.jetbrains.enable toggle, default on)
     discord.nix        # Discord (home.discord.enable toggle, default on)
     ai.nix             # pi-coding-agent
     tools.nix          # misc CLI tools (curl, jq, ripgrep, fd, gh, vscode…)
@@ -35,9 +35,10 @@ home/
 - **endeavour** — EndeavourOS, everything enabled.
 - **wsl** — WSL (home path `/home/wdhenin`), overrides in `hosts/wsl.nix`:
   Brave and Ghostty forced off (`lib.mkForce false`), Discord off via
-  `home.discord.enable = false`, Rust off via `home.rust.enable = false`.
-  Chrome and JetBrains IDEA stay enabled — used directly from WSL rather than
-  through the Windows host.
+  `home.discord.enable = false`, JetBrains IDEA off via
+  `home.jetbrains.enable = false`, Rust off via `home.rust.enable = false`.
+  Chrome stays enabled — used directly from WSL rather than through the
+  Windows host.
 
 ## Daily usage
 

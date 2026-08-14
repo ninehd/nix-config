@@ -26,8 +26,7 @@
       pkgs = import nixpkgs {
         inherit system;
         overlays = [ inputs.rust-overlay.overlays.default ];
-        # idea (IntelliJ Ultimate) is unfree; scope the allowance to it
-        # instead of a blanket allowUnfree.
+        # Scope unfree allowance to packages this config needs.
         config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
           "idea"
           "google-chrome"

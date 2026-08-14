@@ -7,6 +7,7 @@
     ripgrep
     fd
     htop
+    btop
     xclip
     wl-clipboard # Wayland equivalent of xclip — Claude Code shells out to it to read clipboard images
     uv

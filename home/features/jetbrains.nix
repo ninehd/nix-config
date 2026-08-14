@@ -1,7 +1,11 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
-  home.packages = [
-    pkgs.jetbrains.idea
-  ];
+  options.home.jetbrains.enable = lib.mkEnableOption "IntelliJ IDEA Ultimate" // { default = true; };
+
+  config = lib.mkIf config.home.jetbrains.enable {
+    home.packages = [
+      pkgs.jetbrains.idea
+    ];
+  };
 }
