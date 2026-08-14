@@ -1,7 +1,9 @@
 { pkgs, lib, ... }:
 
 {
-  fonts.fontconfig.enable = true; # so fontconfig picks up fonts from the nix profile (needed for IntelliJ's terminal)
+  # Needed for IntelliJ's terminal under WSL: fontconfig can see profile fonts,
+  # and a stale cache is usually fixed with `fc-cache -fv`.
+  fonts.fontconfig.enable = true;
 
   home.packages = with pkgs; [
     jetbrains-mono # font used by ghostty's settings.font-family below
