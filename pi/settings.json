@@ -7,7 +7,12 @@
   "packages": [
     "npm:pi-context-view",
     "npm:@ff-labs/pi-fff",
-    "npm:pi-web-access"
+    {
+      "source": "npm:pi-web-search",
+      "extensions": [
+        "+src/index.ts"
+      ]
+    }
   ],
   "enableInstallTelemetry": false,
   "treeFilterMode": "default",
