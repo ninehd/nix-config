@@ -11,6 +11,9 @@
           "rustfmt"
           "clippy"
         ];
+        targets = [
+          "wasm32-unknown-unknown"
+        ];
       })
       pkgs.rust-analyzer
       pkgs.pkg-config

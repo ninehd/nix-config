@@ -4,6 +4,9 @@
   options.home.mavenGradle.enable =
     lib.mkEnableOption "Maven and Gradle" // { default = true; };
 
+  options.home.dioxus.enable =
+    lib.mkEnableOption "Dioxus CLI" // { default = true; };
+
   config = {
     home.packages = with pkgs;
       [
@@ -22,6 +25,9 @@
         pnpm
         fnm # Node version manager — installs/switches Node per-project, no pkgs.nodejs pin here
         vscode
+      ]
+      ++ lib.optionals config.home.dioxus.enable [
+        dioxus-cli
       ]
       ++ lib.optionals config.home.mavenGradle.enable [
         maven

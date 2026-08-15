@@ -2,16 +2,11 @@
 name: to-spec
 description: Turn the current conversation into a spec and publish it to the project issue tracker — no interview, just synthesis of what you've already discussed.
 disable-model-invocation: true
-license: MIT
 ---
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user — just synthesize what you already know.
 
-The issue tracker and triage label vocabulary should have been provided to you — run `/skill:setup-matt-pocock-skills` in Pi if not.
-
-## Pi usage
-
-Invoke dependencies as Pi skill commands, e.g. `/skill:setup-matt-pocock-skills`. If `docs/agents/triage-labels.md` is absent, use `ready-for-agent` as the default ready label.
+The issue tracker and triage label vocabulary should have been provided to you — run `/setup-matt-pocock-skills` if not.
 
 ## Process
 

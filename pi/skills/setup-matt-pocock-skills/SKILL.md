@@ -2,15 +2,9 @@
 name: setup-matt-pocock-skills
 description: Configure this repo for the engineering skills — set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills.
 disable-model-invocation: true
-license: MIT
 ---
 
 # Setup Matt Pocock's Skills
-
-## Pi usage
-
-When this skill mentions an upstream slash command like `/triage`, invoke the corresponding Pi skill command as `/skill:triage`.
-
 
 Scaffold the per-repo configuration that the engineering skills assume:
 
