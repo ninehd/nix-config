@@ -2,16 +2,12 @@
   "lastChangelogVersion": "0.84.1",
   "theme": "ansi-dark",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.4",
+  "defaultModel": "gpt-5.5",
   "defaultThinkingLevel": "high",
   "packages": [
-    "npm:@narumitw/pi-plan-mode",
-    {
-      "source": "npm:pi-sandbox",
-      "extensions": [
-        "+index.ts"
-      ]
-    }
+    "npm:pi-context-view",
+    "npm:@ff-labs/pi-fff",
+    "npm:pi-web-access"
   ],
   "enableInstallTelemetry": false,
   "treeFilterMode": "default",
