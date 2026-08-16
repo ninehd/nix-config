@@ -35,6 +35,7 @@
   home.discord.enable = false;
   home.jetbrains.enable = false;
   home.dioxus.enable = false;
+  home.sqlx.enable = false;
   home.mavenGradle.enable = false;
   home.rust.enable = false;
 }

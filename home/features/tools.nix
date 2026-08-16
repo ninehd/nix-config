@@ -7,6 +7,9 @@
   options.home.dioxus.enable =
     lib.mkEnableOption "Dioxus CLI" // { default = true; };
 
+  options.home.sqlx.enable =
+    lib.mkEnableOption "SQLx CLI" // { default = true; };
+
   config = {
     home.packages = with pkgs;
       [
@@ -28,6 +31,9 @@
       ]
       ++ lib.optionals config.home.dioxus.enable [
         dioxus-cli
+      ]
+      ++ lib.optionals config.home.sqlx.enable [
+        sqlx-cli
       ]
       ++ lib.optionals config.home.mavenGradle.enable [
         maven

@@ -29,6 +29,10 @@
       vi = "nvim";
     };
 
+    envExtra = ''
+      export FFF_ENABLE_HOME_SCAN=0
+    '';
+
     sessionVariables = {
       # Interval (seconds) for the ohmyzsh git-auto-fetch plugin
       GIT_AUTO_FETCH_INTERVAL = 1200;
