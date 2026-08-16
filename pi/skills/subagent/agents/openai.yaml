@@ -1,0 +1,3 @@
+interface:
+  display_name: "Subagent"
+  short_description: "Spawn Pi in a Herdr pane"
