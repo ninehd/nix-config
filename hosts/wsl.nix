@@ -17,7 +17,12 @@
   home.sessionVariables.FLAKE = "${config.home.homeDirectory}/nix-config#wsl";
 
   # Python with ensurepip/venv for WSL tools expecting a full Python.
-  home.packages = [ pkgs.python312 ];
+  # Noto fonts cover broad Unicode text plus color emoji in WSLg apps.
+  home.packages = with pkgs; [
+    noto-fonts
+    noto-fonts-color-emoji
+    python312
+  ];
 
   # WSLg apps should prefer JetBrains Mono and fall back to Nerd Font glyphs.
   fonts.fontconfig.defaultFonts.monospace = [
