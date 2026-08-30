@@ -1,121 +1,47 @@
 ---
 name: subagent
-description: Spawn a Pi subagent in a Herdr pane, observe its work, and wait for its durable assistant result in the JSONL session. Use for independent reviews or delegated repository work when running inside Herdr.
+description: Run a leaf Pi subagent headlessly in an isolated process and collect its result. Use for independent reviews or delegated repository work.
 ---
 
 # Subagent
 
-Spawn each subagent in a separate Herdr pane with a dedicated JSONL session file. Use `wait.ts` beside this file to wait for completion and read the result. Do not infer the result from pane text.
+Delegate one bounded task to one headless Pi process. The child works in the current directory and writes its final response to a file. No Herdr pane is involved.
 
-## Preconditions
+## Recursion boundary
 
-Before any Herdr command, verify this agent runs inside Herdr:
+When `PI_SUBAGENT_DEPTH` is set, complete the current task directly and return its result. That process is a leaf.
+
+Every child launch must set `PI_SUBAGENT_DEPTH=1`, unset `HERDR_ENV`, and receive the leaf system instruction shown below. Skills, extensions, and normal tools remain available; the system instruction and depth guard reserve delegation for the parent.
+
+## Run
+
+1. Define one standalone task. Include all constraints, relevant paths, checks, and required output shape. The child has no parent conversation.
+2. Create a run directory:
 
 ```sh
-test "${HERDR_ENV:-}" = 1
+rtk mktemp -d -t pi-subagent.XXXXXX
 ```
 
-If check fails, say you are not running inside Herdr and stop. Do not inspect or control Herdr from outside Herdr.
-
-Learn installed command syntax when needed:
-
-```sh
-herdr --help
-herdr agent
-herdr pane
-```
-
-The installed `herdr` binary is authority.
-
-## Spawn
-
-1. Choose a short unique agent name matching `[a-z][a-z0-9_-]{0,31}`.
-2. Create a temporary run directory with `mktemp -d`.
-3. Write the complete task to `<run-dir>/prompt.md` with the `write` tool.
-4. Create the exact session path before launch:
+3. Write the task to `<run-dir>/prompt.md` with the `write` tool.
+4. Run Pi headlessly with the `bash` tool. Substitute the returned directory and set the tool timeout high enough for the task:
 
 ```sh
-touch <run-dir>/session.jsonl
-```
-
-5. Create a sibling pane in the current tab, preserve cwd, and keep user focus unchanged:
-
-```sh
-herdr pane split --current --direction right --cwd "$PWD" --no-focus
-```
-
-Use `down` instead of `right` when current pane is narrow or user asked for that direction. Read the new pane ID from `.result.pane.pane_id`.
-
-6. Start Pi in that pane as a Herdr-managed agent:
-
-```sh
-herdr agent start <name> --kind pi --pane <pane-id> -- \
-  --session <run-dir>/session.jsonl \
+RUN_DIR="<run-dir>"
+rtk env -u HERDR_ENV PI_SUBAGENT_DEPTH=1 \
+  pi --print \
+  --session "$RUN_DIR/session.jsonl" \
   --provider "$PI_PROVIDER" \
   --model "$PI_MODEL" \
-  --thinking "$PI_REASONING_LEVEL"
+  --thinking "$PI_REASONING_LEVEL" \
+  --append-system-prompt "You are a leaf subagent. Complete the assigned task directly with available skills and tools, then return its result. Do not invoke the subagent skill or start, spawn, or delegate to another agent." \
+  "Complete the task supplied on stdin. Return only the final result." \
+  < "$RUN_DIR/prompt.md" \
+  > "$RUN_DIR/result.md" \
+  2> "$RUN_DIR/stderr.log"
 ```
 
-Pass native Pi arguments after `--`. Current Pi model settings are available through `PI_PROVIDER`, `PI_MODEL`, and `PI_REASONING_LEVEL` in the bash tool environment.
+5. On success, read `<run-dir>/result.md` with the `read` tool. Treat that file as the subagent result.
+6. On failure or empty output, read `<run-dir>/stderr.log` and report the shortest decisive error. Keep `<run-dir>/session.jsonl` for diagnosis.
+7. Remove the run directory after consuming the result unless its transcript is still needed.
 
-7. Submit the task through Herdr's agent surface:
-
-```sh
-herdr agent prompt <name> "$(cat <run-dir>/prompt.md)" --wait --timeout 120000
-```
-
-Use larger `--timeout` for long work. If prompt returns `blocked` or fails, inspect before sending more input:
-
-```sh
-herdr agent get <name>
-herdr agent read <name> --source recent-unwrapped --lines 120
-```
-
-Do not close or kill the pane while the subagent is working.
-
-## Observe
-
-Inspect progress when needed:
-
-```sh
-herdr agent read <name> --source recent-unwrapped --lines 120
-```
-
-If Herdr cannot classify the agent, use pane output only for progress:
-
-```sh
-herdr pane read <pane-id> --source recent-unwrapped --lines 120
-```
-
-Terminal text is not authoritative for final result.
-
-## Wait and collect
-
-Run the companion script against the exact session file:
-
-```sh
-node ~/.pi/agent/skills/subagent/wait.ts <run-dir>/session.jsonl
-```
-
-The script follows the active JSONL branch. It waits until the latest message on that branch is an assistant message with a terminal `stopReason`, then prints the latest assistant entry as JSON.
-
-Options:
-
-```text
---count <n>           Number of latest terminal assistant entries to print (default: 1)
---timeout <seconds>   Maximum wait (default: 1800)
---poll <milliseconds> Poll interval (default: 500)
-```
-
-When invoking it through the bash tool, set the bash timeout longer than `--timeout`. A nonzero exit means the session could not be read or did not settle before the deadline.
-
-## Cleanup
-
-After collecting the result, close only the pane you created if cleanup is desired:
-
-```sh
-herdr pane close <pane-id>
-rm -rf <run-dir>
-```
-
-Keep the pane or run directory when transcript or UI state is still needed for review.
+For independent tasks, run separate commands in parallel with one run directory per child.
