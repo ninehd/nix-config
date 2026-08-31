@@ -13,6 +13,8 @@ hosts/
   endeavour.nix        # EndeavourOS host (home path, Linux tweaks)
   wsl.nix              # WSL host (home path, drops Linux-only GUI/tools)
 nvim/                  # AstroNvim config linked to ~/.config/nvim
+pi/                    # pi-coding-agent config, extensions, themes, and skills
+opencode/              # OpenCode v2 config; beta binary installed manually
 home/
   common.nix           # shared by every machine
   features/
@@ -24,7 +26,7 @@ home/
     git.nix            # git config
     jetbrains.nix      # IntelliJ IDEA Ultimate (home.jetbrains.enable toggle, default on)
     discord.nix        # Discord (home.discord.enable toggle, default on)
-    ai.nix             # pi-coding-agent
+    ai.nix             # pi-coding-agent + OpenCode v2 config links
     tools.nix          # misc CLI tools (curl, jq, ripgrep, fd, gh, vscode…)
     rust.nix           # Rust toolchain via oxalica/rust-overlay
     astronvim.nix      # Neovim binary/deps via Nix; links nvim/ to ~/.config/nvim

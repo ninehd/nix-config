@@ -1,11 +1,11 @@
 { config, ... }:
 
 {
-  # ~/.local/bin: claude, kitty… ; pi-node: node/npm/pi. Appended to PATH —
-  # fine since none of these names collide with system binaries. Drop each
-  # entry when the tool moves to home.packages.
+  # Manually installed tools not yet managed by Nix. Appended to PATH; drop
+  # each entry when its tool moves to home.packages.
   home.sessionPath = [
     "${config.home.homeDirectory}/.local/bin"
+    "${config.home.homeDirectory}/.opencode/bin"
     "${config.home.homeDirectory}/.local/share/pi-node/node-v22.23.1-linux-x64/bin"
   ];
 

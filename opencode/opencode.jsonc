@@ -1,0 +1,125 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": "notify",
+  "share": "disabled",
+  "compaction": {
+    "auto": true
+  },
+  "permissions": [
+    {
+      "action": "read",
+      "resource": "~/.ssh/*",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "~/.aws/*",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "~/.gnupg/*",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "~/.kube/*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "*.env",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "*.env.*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "*.pem",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "*.key",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.ssh/*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.aws/*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.gnupg/*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.kube/*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.bashrc",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.bash_profile",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.zshrc",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.zprofile",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.profile",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.gitconfig",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.npmrc",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.pypirc",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "git push *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git clean *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "rm -rf *",
+      "effect": "ask"
+    }
+  ]
+}
