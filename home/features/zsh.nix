@@ -42,7 +42,7 @@
       extended = true; # timestamp each entry
       ignoreAllDups = true; # drop older duplicates
       ignoreSpace = true; # commands starting with a space aren't recorded
-      share = false; # belak used INC_APPEND_HISTORY, not SHARE_HISTORY
+      share = true; # sync history between active shells (Herdr, IntelliJ, etc.)
     };
 
     antidote = {
