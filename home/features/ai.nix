@@ -10,6 +10,12 @@
   };
 
   config.home.activation = {
+    linkSharedAgentSkills = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      run mkdir -p "$HOME/.agents"
+      run rm -rf "$HOME/.agents/skills"
+      run ln -s "${config.home.homeDirectory}/nix-config/.agents/skills" "$HOME/.agents/skills"
+    '';
+
     linkPiConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
       run mkdir -p "$HOME/.pi/agent"
       run ln -sfn "${config.home.homeDirectory}/nix-config/pi/settings.json" "$HOME/.pi/agent/settings.json"
@@ -17,7 +23,7 @@
       run ln -sfn "${config.home.homeDirectory}/nix-config/pi/extensions" "$HOME/.pi/agent/extensions"
       run ln -sfn "${config.home.homeDirectory}/nix-config/pi/themes" "$HOME/.pi/agent/themes"
       run ln -sfn "${config.home.homeDirectory}/nix-config/pi/prompts" "$HOME/.pi/agent/prompts"
-      run ln -sfn "${config.home.homeDirectory}/nix-config/pi/skills" "$HOME/.pi/agent/skills"
+      run rm -rf "$HOME/.pi/agent/skills"
     '';
 
     # OpenCode v2 stays manually installed during beta; Home Manager only
@@ -30,7 +36,7 @@
       run ln -sfn "${config.home.homeDirectory}/nix-config/opencode/agents" "$HOME/.config/opencode/agents"
       run ln -sfn "${config.home.homeDirectory}/nix-config/opencode/commands" "$HOME/.config/opencode/commands"
       run ln -sfn "${config.home.homeDirectory}/nix-config/opencode/plugins" "$HOME/.config/opencode/plugins"
-      run ln -sfn "${config.home.homeDirectory}/nix-config/opencode/skills" "$HOME/.config/opencode/skills"
+      run rm -rf "$HOME/.config/opencode/skills"
     '';
   };
 }

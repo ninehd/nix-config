@@ -1,3 +1,0 @@
-interface:
-  display_name: "Subagent"
-  short_description: "Run one headless leaf Pi subagent"

@@ -13,7 +13,8 @@ hosts/
   endeavour.nix        # EndeavourOS host (home path, Linux tweaks)
   wsl.nix              # WSL host (home path, drops Linux-only GUI/tools)
 nvim/                  # AstroNvim config linked to ~/.config/nvim
-pi/                    # pi-coding-agent config, extensions, themes, and skills
+.agents/skills/         # shared pi-coding-agent and OpenCode skills
+pi/                    # pi-coding-agent config, extensions, and themes
 opencode/              # OpenCode v2 config; beta binary installed manually
 home/
   common.nix           # shared by every machine
