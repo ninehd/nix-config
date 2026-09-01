@@ -20,6 +20,9 @@ context: fork
 tools: [Bash, WebFetch, Read, Grep, Glob]
 model: sonnet
 terminal: true
+metadata:
+  opencode/slash: true
+  opencode/autoinvoke: false
 ---
 
 <role>
