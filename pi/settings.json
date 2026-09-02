@@ -1,19 +1,27 @@
 {
-  "lastChangelogVersion": "0.84.1",
+  "lastChangelogVersion": "0.84.4",
   "theme": "ansi-dark",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.6-sol",
   "defaultThinkingLevel": "max",
   "packages": [
     "npm:pi-context-view",
-    "npm:@ff-labs/pi-fff",
     {
-      "source": "npm:pi-web-search",
+      "source": "npm:@ff-labs/pi-fff",
       "extensions": [
         "+src/index.ts"
       ]
     },
-    "npm:pi-mcp-adapter"
+    {
+      "source": "npm:pi-mcp-adapter",
+      "extensions": [
+        "-index.ts"
+      ],
+      "skills": [
+        "-skills/mcp-scripting/SKILL.md"
+      ]
+    },
+    "npm:pi-web-access"
   ],
   "enableInstallTelemetry": false,
   "treeFilterMode": "default",
@@ -27,6 +35,7 @@
   "extensions": [
     "+extensions/startup/index.ts",
     "+extensions/styled-outputs/index.ts",
-    "+extensions/optimizer/index.ts"
+    "+extensions/optimizer/index.ts",
+    "-extensions/subagent/index.ts"
   ]
 }
