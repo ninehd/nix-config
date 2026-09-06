@@ -31,7 +31,9 @@
           "idea"
           "google-chrome"
           "vscode"
+          # pkgs.discord wraps this inner unfree derivation on Linux.
           "discord"
+          "discord-unwrapped"
         ];
       };
       # pi package from its own pinned nixpkgs.
