@@ -3,7 +3,7 @@
 # Weekly cleanup: expire old home-manager generations, then GC the nix
 # store. Standalone home-manager (no NixOS `nix.gc`), so this is done
 # via a systemd user timer instead.
-lib.mkIf pkgs.stdenv.isLinux {
+lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
   systemd.user.services.nix-gc = {
     Unit.Description = "Expire old home-manager generations and garbage collect the nix store";
     Service = {
