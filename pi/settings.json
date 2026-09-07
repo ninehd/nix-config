@@ -35,7 +35,6 @@
   "extensions": [
     "+extensions/startup/index.ts",
     "+extensions/styled-outputs/index.ts",
-    "+extensions/optimizer/index.ts",
     "-extensions/subagent/index.ts"
   ]
 }
