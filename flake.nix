@@ -53,5 +53,12 @@
           extraSpecialArgs = { inherit inputs pkgs-pi; };
           modules = [ ./hosts/wsl.nix ];
         };
+
+      homeConfigurations."debian" =
+        home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
+          extraSpecialArgs = { inherit inputs pkgs-pi; };
+          modules = [ ./hosts/debian.nix ];
+        };
     };
 }

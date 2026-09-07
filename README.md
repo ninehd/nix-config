@@ -12,10 +12,10 @@ flake.nix              # flake entry point, defines hosts
 hosts/
   endeavour.nix        # EndeavourOS host (home path, Linux tweaks)
   wsl.nix              # WSL host (home path, drops Linux-only GUI/tools)
+  debian.nix           # Minimal CLI-only Debian VM profile
 nvim/                  # AstroNvim config linked to ~/.config/nvim
-.agents/skills/         # shared pi-coding-agent and OpenCode skills
+.agents/skills/         # shared pi-coding-agent skills
 pi/                    # pi-coding-agent config, extensions, and themes
-opencode/              # OpenCode v2 config; beta binary installed manually
 home/
   common.nix           # shared by every machine
   features/
@@ -27,7 +27,7 @@ home/
     git.nix            # git config
     jetbrains.nix      # IntelliJ IDEA Ultimate (home.jetbrains.enable toggle, default on)
     discord.nix        # Discord (home.discord.enable toggle, default on)
-    ai.nix             # pi-coding-agent + OpenCode v2 config links
+    ai.nix             # pi-coding-agent and its config links
     tools.nix          # misc CLI tools (curl, jq, ripgrep, fd, gh, vscode…)
     rust.nix           # Rust toolchain via oxalica/rust-overlay
     astronvim.nix      # Neovim binary/deps via Nix; links nvim/ to ~/.config/nvim
@@ -41,6 +41,9 @@ home/
   `programs.git.enable = lib.mkForce false`, Discord off via
   `home.discord.enable = false`, JetBrains IDEA off via
   `home.jetbrains.enable = false`, Rust off via `home.rust.enable = false`.
+- **debian** — minimal Debian VM (`/home/ninehd`) with Pi, Git/GitHub CLI,
+  `fnm`, `pnpm`, `jq`, `ripgrep`, `fd`, `fzf`, and `tmux`. Bash initializes
+  `fnm` and automatically switches Node from `.node-version`/`.nvmrc` files.
 
 ## Daily usage
 
@@ -56,6 +59,7 @@ same alias works on every machine. Spelled out, it's:
 ```bash
 home-manager switch --flake ~/nix-config#endeavour   # EndeavourOS
 home-manager switch --flake ~/nix-config#wsl         # WSL
+home-manager switch --flake ~/nix-config#debian      # Debian VM
 ```
 
 New files must be known to git before switching (`git add`), otherwise the
@@ -66,14 +70,12 @@ flake won't see them.
 Clone this repo to `~/nix-config` (the path `$FLAKE` expects), then:
 
 ```bash
-./bootstrap.sh <host>   # endeavour | wsl
+./bootstrap.sh <host>   # endeavour | wsl | debian
 ```
 
 See the script for details. In short: installs Nix (Determinate), activates
-the home-manager config, sets up GPU driver access for Nix-built GUI apps
-(`non-nixos-gpu-setup` — needed on non-NixOS so OpenGL/Vulkan apps like
-ghostty and Brave get hardware acceleration instead of falling back to
-software rendering), then registers the Nix zsh as login shell (`/etc/shells`
-+ `chsh`) — the GPU and login-shell steps are system-level and cannot be
-managed by home-manager directly.
+the Home Manager config, sets up GPU driver access for Nix-built GUI apps,
+and registers the Nix zsh as login shell. The CLI-only Debian profile skips
+the GPU and zsh steps, keeps Bash, and preserves the original `.bashrc` as
+`.bashrc.hm-backup` on first activation.
 

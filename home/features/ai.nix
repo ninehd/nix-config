@@ -25,18 +25,5 @@
       run ln -sfn "${config.home.homeDirectory}/nix-config/pi/prompts" "$HOME/.pi/agent/prompts"
       run rm -rf "$HOME/.pi/agent/skills"
     '';
-
-    # OpenCode v2 stays manually installed during beta; Home Manager only
-    # manages its versioned configuration alongside the existing Pi setup.
-    linkOpenCodeConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-      run mkdir -p "$HOME/.config/opencode"
-
-      run ln -sfn "${config.home.homeDirectory}/nix-config/opencode/opencode.jsonc" "$HOME/.config/opencode/opencode.jsonc"
-      run ln -sfn "${config.home.homeDirectory}/nix-config/opencode/cli.json" "$HOME/.config/opencode/cli.json"
-      run ln -sfn "${config.home.homeDirectory}/nix-config/opencode/agents" "$HOME/.config/opencode/agents"
-      run ln -sfn "${config.home.homeDirectory}/nix-config/opencode/commands" "$HOME/.config/opencode/commands"
-      run ln -sfn "${config.home.homeDirectory}/nix-config/opencode/plugins" "$HOME/.config/opencode/plugins"
-      run rm -rf "$HOME/.config/opencode/skills"
-    '';
   };
 }

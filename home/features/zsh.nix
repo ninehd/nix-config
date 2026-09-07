@@ -5,7 +5,6 @@
   # each entry when its tool moves to home.packages.
   home.sessionPath = [
     "${config.home.homeDirectory}/.local/bin"
-    "${config.home.homeDirectory}/.opencode/bin"
     "${config.home.homeDirectory}/.local/share/pi-node/node-v22.23.1-linux-x64/bin"
   ];
 

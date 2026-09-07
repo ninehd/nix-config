@@ -3,18 +3,26 @@
 # Idempotent: safe to re-run, each step is skipped if already done.
 #
 # Usage: ./bootstrap.sh <host>
-#   host: name of the flake output to use (e.g. endeavour, wsl)
+#   host: name of the flake output to use (endeavour, wsl, debian)
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <host>" >&2
-  echo "  Available hosts: endeavour, wsl" >&2
+  echo "  Available hosts: endeavour, wsl, debian" >&2
   exit 1
 fi
 
 HOST="$1"
+case "$HOST" in
+  endeavour|wsl|debian) ;;
+  *)
+    echo "Unknown host: $HOST" >&2
+    echo "Available hosts: endeavour, wsl, debian" >&2
+    exit 1
+    ;;
+esac
 NIX_ZSH="$HOME/.nix-profile/bin/zsh"
 GPU_SETUP="$HOME/.nix-profile/bin/non-nixos-gpu-setup"
 
@@ -30,21 +38,31 @@ else
 fi
 
 step "2/5 home-manager switch"
-nix run home-manager -- switch --flake "$REPO_DIR#$HOST"
+# Debian ships a default ~/.bashrc; preserve it on the first activation before
+# Home Manager takes ownership of Bash configuration.
+nix run home-manager -- switch -b hm-backup --flake "$REPO_DIR#$HOST"
 
 step "3/5 GPU drivers for Nix packages (non-NixOS)"
-# Idempotent: just re-links /run/opengl-driver, safe to re-run.
-sudo "$GPU_SETUP"
+if [[ "$HOST" == "debian" ]]; then
+  echo "skipped for the CLI-only Debian profile"
+else
+  # Idempotent: just re-links /run/opengl-driver, safe to re-run.
+  sudo "$GPU_SETUP"
+fi
 
 step "4/5 Register Nix zsh in /etc/shells"
-if ! grep -qx "$NIX_ZSH" /etc/shells; then
+if [[ "$HOST" == "debian" ]]; then
+  echo "skipped; Debian keeps Bash"
+elif ! grep -qx "$NIX_ZSH" /etc/shells; then
   echo "$NIX_ZSH" | sudo tee -a /etc/shells
 else
   echo "already registered"
 fi
 
 step "5/5 Login shell"
-if [[ "$(getent passwd "$USER" | cut -d: -f7)" != "$NIX_ZSH" ]]; then
+if [[ "$HOST" == "debian" ]]; then
+  echo "skipped; Debian keeps Bash"
+elif [[ "$(getent passwd "$USER" | cut -d: -f7)" != "$NIX_ZSH" ]]; then
   chsh -s "$NIX_ZSH"
   echo "Log out and back in for the new shell to take effect."
 else
