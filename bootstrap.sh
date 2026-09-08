@@ -38,8 +38,7 @@ else
 fi
 
 step "2/5 home-manager switch"
-# Debian ships a default ~/.bashrc; preserve it on the first activation before
-# Home Manager takes ownership of Bash configuration.
+# Preserve any pre-existing files before Home Manager takes ownership.
 nix run home-manager -- switch -b hm-backup --flake "$REPO_DIR#$HOST"
 
 step "3/5 GPU drivers for Nix packages (non-NixOS)"
@@ -51,18 +50,14 @@ else
 fi
 
 step "4/5 Register Nix zsh in /etc/shells"
-if [[ "$HOST" == "debian" ]]; then
-  echo "skipped; Debian keeps Bash"
-elif ! grep -qx "$NIX_ZSH" /etc/shells; then
+if ! grep -qx "$NIX_ZSH" /etc/shells; then
   echo "$NIX_ZSH" | sudo tee -a /etc/shells
 else
   echo "already registered"
 fi
 
 step "5/5 Login shell"
-if [[ "$HOST" == "debian" ]]; then
-  echo "skipped; Debian keeps Bash"
-elif [[ "$(getent passwd "$USER" | cut -d: -f7)" != "$NIX_ZSH" ]]; then
+if [[ "$(getent passwd "$USER" | cut -d: -f7)" != "$NIX_ZSH" ]]; then
   chsh -s "$NIX_ZSH"
   echo "Log out and back in for the new shell to take effect."
 else

@@ -5,6 +5,7 @@
   imports = [
     ../home/features/ai.nix
     ../home/features/git.nix
+    ../home/features/zsh.nix
   ];
 
   home.username = "ninehd";
@@ -38,14 +39,4 @@
     tmux
   ];
 
-  # Keep Debian's Bash as the login shell and let fnm select Node versions,
-  # including automatic project switching via .node-version/.nvmrc files.
-  programs.bash = {
-    enable = true;
-    enableCompletion = false;
-    shellAliases.hms = "home-manager switch --flake $FLAKE";
-    initExtra = ''
-      eval "$(fnm env --use-on-cd --shell bash)"
-    '';
-  };
 }

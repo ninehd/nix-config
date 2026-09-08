@@ -41,9 +41,10 @@ home/
   `programs.git.enable = lib.mkForce false`, Discord off via
   `home.discord.enable = false`, JetBrains IDEA off via
   `home.jetbrains.enable = false`, Rust off via `home.rust.enable = false`.
-- **debian** — minimal Debian VM (`/home/ninehd`) with Pi, Git/GitHub CLI,
-  `fnm`, `pnpm`, `jq`, `ripgrep`, `fd`, `fzf`, and `tmux`. Bash initializes
-  `fnm` and automatically switches Node from `.node-version`/`.nvmrc` files.
+- **debian** — minimal Debian VM (`/home/ninehd`) with Zsh, Pi,
+  Git/GitHub CLI, `fnm`, `pnpm`, `jq`, `ripgrep`, `fd`, `fzf`, and `tmux`.
+  Zsh initializes `fnm` and automatically switches Node from
+  `.node-version`/`.nvmrc` files.
 
 ## Daily usage
 
@@ -75,7 +76,6 @@ Clone this repo to `~/nix-config` (the path `$FLAKE` expects), then:
 
 See the script for details. In short: installs Nix (Determinate), activates
 the Home Manager config, sets up GPU driver access for Nix-built GUI apps,
-and registers the Nix zsh as login shell. The CLI-only Debian profile skips
-the GPU and zsh steps, keeps Bash, and preserves the original `.bashrc` as
-`.bashrc.hm-backup` on first activation.
+and registers the Nix zsh as login shell. The CLI-only Debian profile only
+skips the GPU setup.
 

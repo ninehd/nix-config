@@ -5,12 +5,10 @@
   # each entry when its tool moves to home.packages.
   home.sessionPath = [
     "${config.home.homeDirectory}/.local/bin"
-    "${config.home.homeDirectory}/.local/share/pi-node/node-v22.23.1-linux-x64/bin"
   ];
 
-  # The login shell stays /usr/bin/zsh (pacman) — chsh is untouched. Nix also
-  # installs its own zsh (programs.zsh.package isn't nullable) but that only
-  # affects `zsh` invocations from PATH, not login.
+  # Home Manager installs and configures Nix's zsh. bootstrap.sh separately
+  # registers it in /etc/shells and selects it as the login shell.
   programs.zsh = {
     enable = true;
 
@@ -24,6 +22,9 @@
       hms = "home-manager switch --flake $FLAKE";
       xx = "open .";
       ll = "ls -lha";
+      d = "docker";
+      dps = "docker ps";
+      dc = "docker compose";
       vim = "nvim";
       vi = "nvim";
     };
