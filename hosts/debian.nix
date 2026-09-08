@@ -18,7 +18,10 @@
   programs.home-manager.enable = true;
   manual.manpages.enable = false;
 
-  home.sessionVariables.FLAKE = "${config.home.homeDirectory}/nix-config#debian";
+  home.sessionVariables = {
+    FLAKE = "${config.home.homeDirectory}/nix-config#debian";
+    FFF_ENABLE_HOME_SCAN = "0";
+  };
 
   # Keep only Node in Pi's private PATH; the desktop profiles additionally
   # provide Bun and RTK.
