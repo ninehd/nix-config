@@ -39,4 +39,8 @@
     tmux
   ];
 
+  # Lightweight prompt: user@host plus at most three directory segments.
+  programs.zsh.initContent = lib.mkAfter ''
+    PS1='%F{cyan}%n%f@%F{magenta}%m%f %F{blue}%3~%f %F{green}❯%f '
+  '';
 }
