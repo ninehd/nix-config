@@ -4,6 +4,9 @@
   options.home.mavenGradle.enable =
     lib.mkEnableOption "Maven and Gradle" // { default = true; };
 
+  options.home.vscode.enable =
+    lib.mkEnableOption "Visual Studio Code" // { default = true; };
+
   options.home.dioxus.enable =
     lib.mkEnableOption "Dioxus CLI" // { default = true; };
 
@@ -30,6 +33,8 @@
         lazygit
         pnpm
         fnm # Node version manager — installs/switches Node per-project, no pkgs.nodejs pin here
+      ]
+      ++ lib.optionals config.home.vscode.enable [
         vscode
       ]
       ++ lib.optionals config.home.dioxus.enable [

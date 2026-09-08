@@ -29,6 +29,10 @@
   # provide Bun and RTK.
   programs.pi-coding-agent.extraPackages = lib.mkForce [ pkgs.nodejs ];
 
+  # Keep the Debian VM profile minimal: no GUI editor or JVM build tools.
+  home.vscode.enable = false;
+  home.mavenGradle.enable = false;
+
   home.packages = with pkgs; [
     fzf
     tmux
