@@ -5,6 +5,7 @@
   imports = [
     ../home/features/ai.nix
     ../home/features/git.nix
+    ../home/features/tools.nix
     ../home/features/zsh.nix
   ];
 
@@ -29,12 +30,6 @@
   programs.pi-coding-agent.extraPackages = lib.mkForce [ pkgs.nodejs ];
 
   home.packages = with pkgs; [
-    gh
-    fnm
-    pnpm
-    jq
-    ripgrep
-    fd
     fzf
     tmux
   ];
