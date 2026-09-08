@@ -10,6 +10,9 @@
   options.home.sqlx.enable =
     lib.mkEnableOption "SQLx CLI" // { default = true; };
 
+  options.home.postgresql.enable =
+    lib.mkEnableOption "PostgreSQL client tools (psql, pg_dump, etc.)" // { default = true; };
+
   config = {
     home.packages = with pkgs;
       [
@@ -34,6 +37,9 @@
       ]
       ++ lib.optionals config.home.sqlx.enable [
         sqlx-cli
+      ]
+      ++ lib.optionals config.home.postgresql.enable [
+        postgresql
       ]
       ++ lib.optionals config.home.mavenGradle.enable [
         maven
