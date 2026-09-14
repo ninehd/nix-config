@@ -16,9 +16,11 @@ Inspect the current branch and working tree before making changes. Preserve unre
 
 ## 2. Create the branch
 
-Before editing code, create a task-specific branch from the appropriate base branch. Follow the repository's naming convention; otherwise use a short lowercase name such as `feat/<ticket>-<slug>` or `fix/<ticket>-<slug>`, omitting the ticket number when none exists.
+Before editing code, switch to `main`, verify it is clean enough to move away from the current work safely, and pull the latest remote changes. If checkout or pull would affect unrelated local changes, stop and ask the user how to proceed.
 
-Never implement directly on the default branch. If the current branch is already dedicated to this exact work, reuse it instead of creating a nested or duplicate branch. Do not pull, rebase, or overwrite an existing branch without the user's permission.
+Then create a task-specific branch from the updated `main` branch. Follow the repository's naming convention; otherwise use a short lowercase name such as `feat/<ticket>-<slug>` or `fix/<ticket>-<slug>`, omitting the ticket number when none exists.
+
+Never implement directly on the default branch. If the current branch is already dedicated to this exact work, reuse it instead of creating a nested or duplicate branch. Do not pull, rebase, or overwrite an existing branch without the user's permission, except for pulling `main` before creating the task branch as described above.
 
 ## 3. Implement and verify
 
