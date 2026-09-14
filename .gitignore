@@ -7,3 +7,5 @@ result-*
 
 # Local pi extension state
 pi/extensions/herdr-agent-state.ts
+
+node_modules/
