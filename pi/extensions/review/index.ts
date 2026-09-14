@@ -3,8 +3,7 @@
  *
  * Provides a `/review` command that prompts the agent to review code changes.
  * Supports multiple review modes:
- * - Review a GitHub pull request (checks out the PR locally with `gh`)
- * - Review a GitLab merge request (uses `glab`)
+ * - Review a GitHub pull request or GitLab merge request (auto-detected from URL/remote)
  * - Review against a base branch (PR/MR style)
  * - Review uncommitted changes
  * - Review a specific commit
@@ -12,10 +11,10 @@
  *
  * Usage:
  * - `/review` - show interactive selector
- * - `/review pr 123` - review GitHub PR #123 (checks out locally with `gh`)
- * - `/review pr https://github.com/owner/repo/pull/123` - review GitHub PR from URL
- * - `/review mr` or `/review --mr` - review the GitLab MR for the current branch with `glab`
- * - `/review mr 123` - review GitLab MR !123 (checks out locally with `glab`)
+ * - `/review request 123` - review PR/MR #123, auto-detecting GitHub vs GitLab
+ * - `/review request https://github.com/owner/repo/pull/123` - review GitHub PR from URL
+ * - `/review request https://gitlab.com/group/project/-/merge_requests/123` - review GitLab MR from URL
+ * - `/review pr ...` and `/review mr ...` remain supported as explicit GitHub/GitLab aliases
  * - `/review uncommitted` - review uncommitted changes directly
  * - `/review branch main` or `/review --base main` - review against main branch
  * - `/review --preset base-branch --base develop` - RPC/headless-friendly preset form
@@ -746,8 +745,7 @@ const REVIEW_PRESETS = [
 	{ value: "uncommitted", label: "Review uncommitted changes", description: "" },
 	{ value: "baseBranch", label: "Review against a base branch", description: "(local)" },
 	{ value: "commit", label: "Review a commit", description: "" },
-	{ value: "pullRequest", label: "Review a pull request", description: "(GitHub PR)" },
-	{ value: "mergeRequest", label: "Review a merge request", description: "(GitLab MR)" },
+	{ value: "reviewRequest", label: "Review a PR/MR", description: "(GitHub or GitLab)" },
 	{ value: "folder", label: "Review a folder (or more)", description: "(snapshot, not diff)" },
 ] as const;
 
@@ -939,6 +937,75 @@ export default function reviewExtension(pi: ExtensionAPI) {
 		};
 	}
 
+	type ReviewRequestProvider = "github" | "gitlab";
+
+	async function getReviewRequestProviderFromRemote(): Promise<ReviewRequestProvider | null> {
+		const { stdout: originUrl, code: originCode } = await pi.exec("git", ["remote", "get-url", "origin"]);
+		if (originCode === 0) {
+			const provider = detectReviewRequestProviderFromText(originUrl);
+			if (provider) return provider;
+		}
+
+		const { stdout, code } = await pi.exec("git", ["remote", "-v"]);
+		if (code !== 0) return null;
+		return detectReviewRequestProviderFromText(stdout);
+	}
+
+	function detectReviewRequestProviderFromText(value: string): ReviewRequestProvider | null {
+		const lower = value.toLowerCase();
+		if (lower.includes("github.com")) return "github";
+		if (lower.includes("gitlab")) return "gitlab";
+		return null;
+	}
+
+	function detectReviewRequestProviderFromRef(ref: string): ReviewRequestProvider | null {
+		const trimmed = ref.trim().toLowerCase();
+		if (/github\.com\/[^/]+\/[^/]+\/pull\/\d+/.test(trimmed)) return "github";
+		if (trimmed.startsWith("!") || /\/(-\/)?merge_requests\/\d+(?:\b|$)/.test(trimmed)) return "gitlab";
+		return null;
+	}
+
+	async function chooseReviewRequestProvider(ctx: ExtensionContext, ref?: string): Promise<ReviewRequestProvider | null> {
+		if (ref?.trim()) {
+			const providerFromRef = detectReviewRequestProviderFromRef(ref);
+			if (providerFromRef) return providerFromRef;
+		}
+
+		const providerFromRemote = await getReviewRequestProviderFromRemote();
+		if (providerFromRemote) return providerFromRemote;
+
+		if (!ctx.hasUI) return null;
+		const choice = await ctx.ui.select("Review as:", ["GitHub PR", "GitLab MR"]);
+		if (choice === "GitHub PR") return "github";
+		if (choice === "GitLab MR") return "gitlab";
+		return null;
+	}
+
+	async function resolveReviewRequestTarget(
+		ctx: ExtensionContext,
+		ref?: string,
+		options: { skipInitialPendingChangesCheck?: boolean; provider?: ReviewRequestProvider } = {},
+	): Promise<ReviewTarget | null> {
+		const provider = options.provider ?? await chooseReviewRequestProvider(ctx, ref);
+		if (!provider) {
+			ctx.ui.notify(
+				"Could not determine whether to review a GitHub PR or GitLab MR. Pass a GitHub/GitLab URL, or use /review pr or /review mr.",
+				"error",
+			);
+			return null;
+		}
+
+		if (provider === "github") {
+			return ref?.trim()
+				? await resolvePullRequestTarget(ctx, ref, options)
+				: await resolveCurrentPullRequestTarget(ctx);
+		}
+
+		return ref?.trim()
+			? await resolveMergeRequestTarget(ctx, ref, options)
+			: await resolveCurrentMergeRequestTarget(ctx);
+	}
+
 	async function resolveCurrentPullRequestTarget(ctx: ExtensionContext): Promise<ReviewTarget | null> {
 		const ghVersion = await pi.exec("gh", ["--version"]);
 		if (ghVersion.code === 0) {
@@ -1040,11 +1107,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
 	 * Show the review preset selector
 	 */
 	async function showReviewSelector(ctx: ExtensionContext): Promise<ReviewTarget | null> {
-		if (!isTuiMode(ctx)) {
-			ctx.ui.notify(
-				"Interactive review selector is only available in TUI mode; using the smart default target. Pass /review --base <branch>, /review --mr, or another explicit target to avoid this fallback.",
-				"info",
-			);
+		if (!ctx.hasUI) {
 			return await resolveSmartDefaultTarget(ctx);
 		}
 
@@ -1073,44 +1136,57 @@ export default function reviewExtension(pi: ExtensionAPI) {
 				},
 			];
 
-			const result = await ctx.ui.custom<ReviewPresetValue | null>((tui, theme, _kb, done) => {
-				const container = new Container();
-				container.addChild(new DynamicBorder((str) => theme.fg("accent", str)));
-				container.addChild(new Text(theme.fg("accent", theme.bold("Select a review preset"))));
+			let result: ReviewPresetValue | null | undefined;
 
-				const selectList = new SelectList(items, Math.min(items.length, 10), {
-					selectedPrefix: (text) => theme.fg("accent", text),
-					selectedText: (text) => theme.fg("accent", text),
-					description: (text) => theme.fg("muted", text),
-					scrollInfo: (text) => theme.fg("dim", text),
-					noMatch: (text) => theme.fg("warning", text),
+			if (isTuiMode(ctx)) {
+				result = await ctx.ui.custom<ReviewPresetValue | null>((tui, theme, _kb, done) => {
+					const container = new Container();
+					container.addChild(new DynamicBorder((str) => theme.fg("accent", str)));
+					container.addChild(new Text(theme.fg("accent", theme.bold("Select a review preset"))));
+
+					const selectList = new SelectList(items, Math.min(items.length, 10), {
+						selectedPrefix: (text) => theme.fg("accent", text),
+						selectedText: (text) => theme.fg("accent", text),
+						description: (text) => theme.fg("muted", text),
+						scrollInfo: (text) => theme.fg("dim", text),
+						noMatch: (text) => theme.fg("warning", text),
+					});
+
+					// Preselect the smart default without reordering the list
+					if (smartDefaultIndex >= 0) {
+						selectList.setSelectedIndex(smartDefaultIndex);
+					}
+
+					selectList.onSelect = (item) => done(item.value as ReviewPresetValue);
+					selectList.onCancel = () => done(null);
+
+					container.addChild(selectList);
+					container.addChild(new Text(theme.fg("dim", "Press enter to confirm or esc to go back")));
+					container.addChild(new DynamicBorder((str) => theme.fg("accent", str)));
+
+					return {
+						render(width: number) {
+							return container.render(width);
+						},
+						invalidate() {
+							container.invalidate();
+						},
+						handleInput(data: string) {
+							selectList.handleInput(data);
+							tui.requestRender();
+						},
+					};
 				});
-
-				// Preselect the smart default without reordering the list
-				if (smartDefaultIndex >= 0) {
-					selectList.setSelectedIndex(smartDefaultIndex);
-				}
-
-				selectList.onSelect = (item) => done(item.value as ReviewPresetValue);
-				selectList.onCancel = () => done(null);
-
-				container.addChild(selectList);
-				container.addChild(new Text(theme.fg("dim", "Press enter to confirm or esc to go back")));
-				container.addChild(new DynamicBorder((str) => theme.fg("accent", str)));
-
-				return {
-					render(width: number) {
-						return container.render(width);
-					},
-					invalidate() {
-						container.invalidate();
-					},
-					handleInput(data: string) {
-						selectList.handleInput(data);
-						tui.requestRender();
-					},
-				};
-			});
+			} else {
+				const valueByOption = new Map<string, ReviewPresetValue>();
+				const options = items.map((item) => {
+					const option = item.description ? `${item.label} ${item.description}` : item.label;
+					valueByOption.set(option, item.value as ReviewPresetValue);
+					return option;
+				});
+				const selected = await ctx.ui.select("Select a review preset", options);
+				result = selected ? valueByOption.get(selected) : null;
+			}
 
 			if (!result) return null;
 
@@ -1159,14 +1235,8 @@ export default function reviewExtension(pi: ExtensionAPI) {
 					break;
 				}
 
-				case "pullRequest": {
-					const target = await showPrInput(ctx);
-					if (target) return target;
-					break;
-				}
-
-				case "mergeRequest": {
-					const target = await showMrInput(ctx);
+				case "reviewRequest": {
+					const target = await showReviewRequestInput(ctx);
 					if (target) return target;
 					break;
 				}
@@ -1208,6 +1278,19 @@ export default function reviewExtension(pi: ExtensionAPI) {
 			label: branch,
 			description: branch === defaultBranch ? "(default)" : "",
 		}));
+
+		if (!isTuiMode(ctx)) {
+			if (!ctx.hasUI) return null;
+			const branchByOption = new Map<string, string>();
+			const options = items.map((item) => {
+				const option = item.description ? `${item.label} ${item.description}` : item.label;
+				branchByOption.set(option, item.value);
+				return option;
+			});
+			const selected = await ctx.ui.select("Select base branch", options);
+			const branch = selected ? branchByOption.get(selected) : undefined;
+			return branch ? { type: "baseBranch", branch } : null;
+		}
 
 		const result = await ctx.ui.custom<string | null>((tui, theme, keybindings, done) => {
 			const container = new Container();
@@ -1307,6 +1390,19 @@ export default function reviewExtension(pi: ExtensionAPI) {
 			label: `${commit.sha.slice(0, 7)} ${commit.title}`,
 			description: "",
 		}));
+
+		if (!isTuiMode(ctx)) {
+			if (!ctx.hasUI) return null;
+			const commitByOption = new Map<string, { sha: string; title: string }>();
+			const options = items.map((item) => {
+				const commit = commits.find((candidate) => candidate.sha === item.value);
+				if (commit) commitByOption.set(item.label, commit);
+				return item.label;
+			});
+			const selected = await ctx.ui.select("Select commit to review", options);
+			const commit = selected ? commitByOption.get(selected) : undefined;
+			return commit ? { type: "commit", sha: commit.sha, title: commit.title } : null;
+		}
 
 		const result = await ctx.ui.custom<{ sha: string; title: string } | null>((tui, theme, keybindings, done) => {
 			const container = new Container();
@@ -1422,44 +1518,23 @@ export default function reviewExtension(pi: ExtensionAPI) {
 	}
 
 	/**
-	 * Show PR input and handle checkout
+	 * Show PR/MR input and handle checkout.
 	 */
-	async function showPrInput(ctx: ExtensionContext): Promise<ReviewTarget | null> {
-		// First check for pending changes that would prevent branch switching
+	async function showReviewRequestInput(ctx: ExtensionContext): Promise<ReviewTarget | null> {
+		// First check for pending changes that would prevent branch switching.
 		if (await hasPendingChanges(pi)) {
-			ctx.ui.notify(PR_CHECKOUT_BLOCKED_BY_PENDING_CHANGES_MESSAGE, "error");
+			ctx.ui.notify("Cannot checkout PR/MR: you have uncommitted changes. Please commit or stash them first.", "error");
 			return null;
 		}
 
-		// Get PR reference from user
-		const prRef = await ctx.ui.editor(
-			"Enter GitHub PR number or URL (e.g. 123 or https://github.com/owner/repo/pull/123):",
+		const ref = await ctx.ui.editor(
+			"Enter PR/MR number or URL (e.g. 123, !123, https://github.com/owner/repo/pull/123, or https://gitlab.com/group/project/-/merge_requests/123):",
 			"",
 		);
 
-		if (!prRef?.trim()) return null;
+		if (!ref?.trim()) return null;
 
-		return await resolvePullRequestTarget(ctx, prRef, { skipInitialPendingChangesCheck: true });
-	}
-
-	/**
-	 * Show GitLab MR input and handle checkout
-	 */
-	async function showMrInput(ctx: ExtensionContext): Promise<ReviewTarget | null> {
-		// First check for pending changes that would prevent branch switching
-		if (await hasPendingChanges(pi)) {
-			ctx.ui.notify(MR_CHECKOUT_BLOCKED_BY_PENDING_CHANGES_MESSAGE, "error");
-			return null;
-		}
-
-		const mrRef = await ctx.ui.editor(
-			"Enter GitLab MR number or URL (e.g. 123 or https://gitlab.com/group/project/-/merge_requests/123):",
-			"",
-		);
-
-		if (!mrRef?.trim()) return null;
-
-		return await resolveMergeRequestTarget(ctx, mrRef, { skipInitialPendingChangesCheck: true });
+		return await resolveReviewRequestTarget(ctx, ref, { skipInitialPendingChangesCheck: true });
 	}
 
 	/**
@@ -1563,12 +1638,9 @@ export default function reviewExtension(pi: ExtensionAPI) {
 	 * Parse command arguments for direct invocation.
 	 * Supports legacy subcommands plus headless/RPC-friendly flags.
 	 */
-	type PendingReviewTarget =
-		| { type: "githubPr"; ref: string }
-		| { type: "currentGithubPr" }
-		| { type: "gitlabMr"; ref?: string };
+	type PendingReviewTarget = { type: "reviewRequest"; ref?: string; provider?: ReviewRequestProvider };
 	type ReviewSessionMode = "fresh" | "current";
-	type ReviewPresetFlag = "uncommitted" | "baseBranch" | "commit" | "pullRequest" | "mergeRequest" | "folder";
+	type ReviewPresetFlag = "uncommitted" | "baseBranch" | "commit" | "reviewRequest" | "folder";
 	type ParsedReviewArgs = {
 		target: ReviewTarget | PendingReviewTarget | null;
 		extraInstruction?: string;
@@ -1676,10 +1748,13 @@ export default function reviewExtension(pi: ExtensionAPI) {
 				return "commit";
 			case "pr":
 			case "pull-request":
-				return "pullRequest";
 			case "mr":
 			case "merge-request":
-				return "mergeRequest";
+			case "request":
+			case "review-request":
+			case "pr-mr":
+			case "mr-pr":
+				return "reviewRequest";
 			case "folder":
 			case "folders":
 			case "path":
@@ -1717,10 +1792,9 @@ export default function reviewExtension(pi: ExtensionAPI) {
 		let preset: ReviewPresetFlag | undefined;
 		let baseBranch: string | undefined;
 		let commitSha: string | undefined;
-		let prRef: string | undefined;
-		let useCurrentPr = false;
-		let mrRef: string | undefined;
-		let useCurrentMr = false;
+		let reviewRequestRef: string | undefined;
+		let useCurrentReviewRequest = false;
+		let reviewRequestProvider: ReviewRequestProvider | undefined;
 		const folderPaths: string[] = [];
 
 		for (let i = 0; i < rawParts.length; i++) {
@@ -1761,25 +1835,21 @@ export default function reviewExtension(pi: ExtensionAPI) {
 				}
 
 				case "--pr":
-				case "--pull-request": {
-					const result = readOptionalOptionValue(inlineValue, rawParts, i);
-					if (result.value) {
-						prRef = result.value;
-					} else {
-						useCurrentPr = true;
-					}
-					i = result.nextIndex;
-					break;
-				}
-
+				case "--pull-request":
 				case "--mr":
-				case "--merge-request": {
+				case "--merge-request":
+				case "--request":
+				case "--review-request":
+				case "--pr-mr":
+				case "--mr-pr": {
 					const result = readOptionalOptionValue(inlineValue, rawParts, i);
 					if (result.value) {
-						mrRef = result.value;
+						reviewRequestRef = result.value;
 					} else {
-						useCurrentMr = true;
+						useCurrentReviewRequest = true;
 					}
+					if (name === "--pr" || name === "--pull-request") reviewRequestProvider = "github";
+					if (name === "--mr" || name === "--merge-request") reviewRequestProvider = "gitlab";
 					i = result.nextIndex;
 					break;
 				}
@@ -1814,7 +1884,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
 							target: null,
 							extraInstruction,
 							sessionMode,
-							error: `Unknown review preset "${result.value}". Use uncommitted, base-branch, commit, pr/mr, or folder.`,
+							error: `Unknown review preset "${result.value}". Use uncommitted, base-branch, commit, pr/mr, request, or folder.`,
 						};
 					}
 					preset = normalized;
@@ -1869,6 +1939,10 @@ export default function reviewExtension(pi: ExtensionAPI) {
 			parts.splice(0, 2, "pull-request");
 		}
 
+		if (parts.length > 1 && parts[0]?.toLowerCase() === "review" && parts[1]?.toLowerCase() === "request") {
+			parts.splice(0, 2, "review-request");
+		}
+
 		if (parts.length > 0) {
 			const subcommand = parts[0]?.toLowerCase();
 
@@ -1901,20 +1975,21 @@ export default function reviewExtension(pi: ExtensionAPI) {
 				}
 
 				case "pr":
-				case "pull-request": {
-					const ref = parts[1];
-					return {
-						target: ref ? { type: "githubPr", ref } : { type: "currentGithubPr" },
-						extraInstruction,
-						sessionMode,
-					};
-				}
-
+				case "pull-request":
 				case "mr":
-				case "merge-request": {
+				case "merge-request":
+				case "request":
+				case "review-request":
+				case "pr-mr":
+				case "mr-pr": {
 					const ref = parts[1];
+					const provider = subcommand === "pr" || subcommand === "pull-request"
+						? "github"
+						: subcommand === "mr" || subcommand === "merge-request"
+							? "gitlab"
+							: undefined;
 					return {
-						target: ref ? { type: "gitlabMr", ref } : { type: "gitlabMr" },
+						target: { type: "reviewRequest", ref, provider },
 						extraInstruction,
 						sessionMode,
 					};
@@ -1925,7 +2000,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
 						target: null,
 						extraInstruction,
 						sessionMode,
-						error: `Unknown review target "${parts[0]}". Use uncommitted, branch/base, commit, pr/mr, or folder.`,
+						error: `Unknown review target "${parts[0]}". Use uncommitted, branch/base, commit, request/pr/mr, or folder.`,
 					};
 			}
 		}
@@ -1934,8 +2009,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
 			baseBranch ? "base branch" : undefined,
 			commitSha ? "commit" : undefined,
 			folderPaths.length > 0 ? "folder" : undefined,
-			prRef || useCurrentPr ? "pull request" : undefined,
-			mrRef || useCurrentMr ? "merge request" : undefined,
+			reviewRequestRef || useCurrentReviewRequest ? "PR/MR" : undefined,
 		].filter((value): value is string => Boolean(value));
 
 		if (explicitTargets.length > 1) {
@@ -1958,10 +2032,12 @@ export default function reviewExtension(pi: ExtensionAPI) {
 					return { target: { type: "baseBranch", branch: baseBranch }, extraInstruction, sessionMode };
 				case "commit":
 					return { target: { type: "commit", sha: commitSha ?? "HEAD" }, extraInstruction, sessionMode };
-				case "pullRequest":
-					return { target: prRef ? { type: "githubPr", ref: prRef } : { type: "currentGithubPr" }, extraInstruction, sessionMode };
-				case "mergeRequest":
-					return { target: { type: "gitlabMr", ref: mrRef }, extraInstruction, sessionMode };
+				case "reviewRequest":
+					return {
+						target: { type: "reviewRequest", ref: reviewRequestRef, provider: reviewRequestProvider },
+						extraInstruction,
+						sessionMode,
+					};
 				case "folder":
 					if (folderPaths.length === 0) {
 						return { target: null, extraInstruction, sessionMode, error: "Missing --paths <path...> for --preset folder" };
@@ -1973,19 +2049,15 @@ export default function reviewExtension(pi: ExtensionAPI) {
 		if (baseBranch) return { target: { type: "baseBranch", branch: baseBranch }, extraInstruction, sessionMode };
 		if (commitSha) return { target: { type: "commit", sha: commitSha }, extraInstruction, sessionMode };
 		if (folderPaths.length > 0) return { target: { type: "folder", paths: folderPaths }, extraInstruction, sessionMode };
-		if (prRef) return { target: { type: "githubPr", ref: prRef }, extraInstruction, sessionMode };
-		if (useCurrentPr) return { target: { type: "currentGithubPr" }, extraInstruction, sessionMode };
-		if (mrRef) return { target: { type: "gitlabMr", ref: mrRef }, extraInstruction, sessionMode };
-		if (useCurrentMr) return { target: { type: "gitlabMr" }, extraInstruction, sessionMode };
+		if (reviewRequestRef || useCurrentReviewRequest) {
+			return {
+				target: { type: "reviewRequest", ref: reviewRequestRef, provider: reviewRequestProvider },
+				extraInstruction,
+				sessionMode,
+			};
+		}
 
 		return { target: null, extraInstruction, sessionMode };
-	}
-
-	/**
-	 * Handle PR checkout and return a ReviewTarget (or null on failure)
-	 */
-	async function handlePrCheckout(ctx: ExtensionContext, ref: string): Promise<ReviewTarget | null> {
-		return await resolvePullRequestTarget(ctx, ref);
 	}
 
 	// Register the /review command
@@ -2018,44 +2090,31 @@ export default function reviewExtension(pi: ExtensionAPI) {
 			extraInstruction = parsed.extraInstruction?.trim() || undefined;
 
 			if (parsed.target) {
-				if (parsed.target.type === "githubPr") {
-					// Handle explicit GitHub PR checkout (async operation)
-					target = await handlePrCheckout(ctx, parsed.target.ref);
-					if (!target && isTuiMode(ctx)) {
-						ctx.ui.notify("PR review failed. Returning to review menu.", "warning");
-					}
-				} else if (parsed.target.type === "currentGithubPr") {
-					target = await resolveCurrentPullRequestTarget(ctx);
-					if (!target && isTuiMode(ctx)) {
-						ctx.ui.notify("Current PR review failed. Returning to review menu.", "warning");
-					}
-				} else if (parsed.target.type === "gitlabMr") {
-					target = parsed.target.ref
-						? await resolveMergeRequestTarget(ctx, parsed.target.ref)
-						: await resolveCurrentMergeRequestTarget(ctx);
-					if (!target && isTuiMode(ctx)) {
-						ctx.ui.notify("MR review failed. Returning to review menu.", "warning");
+				if (parsed.target.type === "reviewRequest") {
+					target = await resolveReviewRequestTarget(ctx, parsed.target.ref, { provider: parsed.target.provider });
+					if (!target && ctx.hasUI) {
+						ctx.ui.notify("PR/MR review failed. Returning to review menu.", "warning");
 					}
 				} else {
 					target = parsed.target;
 				}
 			}
 
-			// If no target was supplied, show the rich selector in TUI mode and use a
-			// smart default elsewhere. ctx.ui.custom() is TUI-only and returns undefined
-			// in RPC mode, which otherwise looks like a user cancellation.
+			// If no target was supplied, show the rich selector in TUI mode, the RPC
+			// select dialog in clients like Paseo, and only use a smart default when
+			// there is no interactive UI at all.
 			if (!target) {
-				if (explicitTargetRequested && !isTuiMode(ctx)) {
+				if (explicitTargetRequested && !ctx.hasUI) {
 					return;
 				}
 
-				if (isTuiMode(ctx)) {
+				if (ctx.hasUI) {
 					fromSelector = true;
 				} else {
 					target = await resolveSmartDefaultTarget(ctx);
 					if (target) {
 						ctx.ui.notify(
-							"No interactive review selector outside TUI mode; using the smart default target. Pass an explicit target such as /review --base <branch> or /review --mr to override it.",
+							"No interactive review selector available; using the smart default target. Pass an explicit target such as /review --base <branch> or /review --request to override it.",
 							"info",
 						);
 					}
@@ -2081,7 +2140,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
 				let useFreshSession = parsed.sessionMode === "fresh" ? true : parsed.sessionMode === "current" ? false : messageCount === 0;
 
 				if (!parsed.sessionMode && messageCount > 0) {
-					if (isTuiMode(ctx)) {
+					if (ctx.hasUI) {
 						// Existing session - ask user which mode they want
 						const choice = await ctx.ui.select("Start review in:", ["Empty branch", "Current session"]);
 
@@ -2098,7 +2157,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
 					} else {
 						useFreshSession = true;
 						ctx.ui.notify(
-							"No interactive session-mode prompt outside TUI mode; using Empty branch. Pass --current-session to review in place.",
+							"No interactive session-mode prompt available; using Empty branch. Pass --current-session to review in place.",
 							"info",
 						);
 					}
@@ -2286,7 +2345,7 @@ Instructions:
 		clearReviewState(ctx);
 
 		if (action === "returnAndSummarize") {
-			if (!ctx.ui.getEditorText().trim()) {
+			if (isTuiMode(ctx) && !ctx.ui.getEditorText().trim()) {
 				ctx.ui.setEditorText("Act on the review findings");
 			}
 			if (notifySuccess) {
@@ -2340,7 +2399,7 @@ Instructions:
 
 			let action = parsed.action;
 			if (!action) {
-				if (isTuiMode(ctx)) {
+				if (ctx.hasUI) {
 					const choice = await ctx.ui.select("Finish review:", [
 						"Return only",
 						"Return and fix findings",
@@ -2361,7 +2420,7 @@ Instructions:
 				} else {
 					action = "returnAndSummarize";
 					ctx.ui.notify(
-						"No interactive end-review selector outside TUI mode; returning and summarizing. Pass /end-review return-only or /end-review fix to override.",
+						"No interactive end-review selector available; returning and summarizing. Pass /end-review return-only or /end-review fix to override.",
 						"info",
 					);
 				}
