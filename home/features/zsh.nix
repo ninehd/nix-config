@@ -19,7 +19,7 @@
 
     shellAliases = {
       # $FLAKE (path#config) is set per host — see hosts/*.nix.
-      hms = "home-manager switch --flake $FLAKE";
+      hms = "home-manager switch --flake $FLAKE && if command -v kbuildsycoca6 >/dev/null; then kbuildsycoca6 --noincremental; fi";
       xx = "open .";
       ll = "ls -lha";
       d = "docker";

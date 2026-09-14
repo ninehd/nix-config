@@ -51,7 +51,7 @@ home/
 Edit the `.nix` files, then:
 
 ```bash
-hms   # alias for: home-manager switch --flake $FLAKE
+hms   # alias for: home-manager switch --flake $FLAKE && kbuildsycoca6 --noincremental (if available)
 ```
 
 `$FLAKE` is set per host (`hosts/*.nix`) to `~/nix-config#<host>`, so the
