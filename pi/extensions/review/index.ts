@@ -294,6 +294,10 @@ Tag each finding with a priority level in the title:
 - [P2] - Normal. To be fixed eventually.
 - [P3] - Low. Nice to have.
 
+## Output language
+
+Respond in French. Keep required section titles, priority tags ([P0], [P1], etc.), and verdict keywords exactly as specified when they are part of the required output format.
+
 ## Output format
 
 Provide your findings in a clear, structured format:
