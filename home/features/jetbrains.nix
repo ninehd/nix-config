@@ -6,6 +6,9 @@
   config = lib.mkIf config.home.jetbrains.enable {
     home.packages = [
       pkgs.jetbrains.idea
+      (pkgs.writeShellScriptBin "idea" ''
+        exec ${pkgs.jetbrains.idea}/bin/intellij-idea "$@"
+      '')
     ];
   };
 }

@@ -29,6 +29,7 @@
         # Scope unfree allowance to packages this config needs.
         config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
           "idea"
+          "intellij-idea"
           "google-chrome"
           "vscode"
           # pkgs.discord wraps this inner unfree derivation on Linux.
