@@ -22,6 +22,7 @@
     noto-fonts
     noto-fonts-color-emoji
     python312
+    jira-cli-go
   ];
 
   # WSLg apps should prefer JetBrains Mono and fall back to Nerd Font glyphs.
