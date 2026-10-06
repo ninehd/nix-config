@@ -8,4 +8,7 @@ result-*
 # Local pi extension state
 pi/extensions/herdr-agent-state.ts
 
+# Local/private Pi skills
+.agents/skills/jenkins-configs/
+
 node_modules/
