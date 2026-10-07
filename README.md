@@ -3,7 +3,8 @@
 
 ninehd's [home-manager](https://github.com/nix-community/home-manager)
 flake. Manages the user environment (shell, prompt, terminal, CLI tools) —
-the system itself stays managed by the distro (pacman on EndeavourOS).
+the system itself stays managed outside this repo (pacman on EndeavourOS,
+Windows/WSL, Debian, or macOS).
 
 ## Layout
 
@@ -13,6 +14,7 @@ hosts/
   endeavour.nix        # EndeavourOS host (home path, Linux tweaks)
   wsl.nix              # WSL host (home path, drops Linux-only GUI/tools)
   debian.nix           # Minimal CLI-only Debian VM profile
+  mac.nix              # Current Apple Silicon macOS host
 nvim/                  # AstroNvim config linked to ~/.config/nvim
 .agents/skills/         # shared pi-coding-agent skills
 pi/                    # pi-coding-agent config, extensions, and themes
@@ -45,6 +47,10 @@ home/
   Git/GitHub CLI, `fnm`, `pnpm`, `jq`, `ripgrep`, `fd`, `fzf`, and `tmux`.
   Zsh initializes `fnm` and automatically switches Node from
   `.node-version`/`.nvmrc` files.
+- **mac** — current Apple Silicon macOS host (`/Users/william`), using the
+  shared CLI/editor config. Ghostty config is enabled, but the app itself is
+  installed outside Nix because nixpkgs' Ghostty package is Linux-only; other
+  GUI apps (browsers, VS Code, Discord, JetBrains) are disabled for now.
 
 ## Daily usage
 
@@ -61,6 +67,7 @@ same alias works on every machine. Spelled out, it's:
 home-manager switch --flake ~/nix-config#endeavour   # EndeavourOS
 home-manager switch --flake ~/nix-config#wsl         # WSL
 home-manager switch --flake ~/nix-config#debian      # Debian VM
+home-manager switch --flake ~/nix-config#mac         # macOS
 ```
 
 New files must be known to git before switching (`git add`), otherwise the
@@ -71,11 +78,10 @@ flake won't see them.
 Clone this repo to `~/nix-config` (the path `$FLAKE` expects), then:
 
 ```bash
-./bootstrap.sh <host>   # endeavour | wsl | debian
+./bootstrap.sh <host>   # endeavour | wsl | debian | mac
 ```
 
 See the script for details. In short: installs Nix (Determinate), activates
-the Home Manager config, sets up GPU driver access for Nix-built GUI apps,
-and registers the Nix zsh as login shell. The CLI-only Debian profile only
-skips the GPU setup.
+the Home Manager config, sets up GPU driver access for Nix-built GUI apps
+(on non-NixOS Linux only), and registers the Nix zsh as login shell.
 

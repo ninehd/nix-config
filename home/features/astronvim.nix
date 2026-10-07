@@ -38,6 +38,7 @@ in
       if [ -e "$HOME/.config/nvim" ] && [ ! -L "$HOME/.config/nvim" ]; then
         run mv "$HOME/.config/nvim" "$HOME/.config/nvim.bak.$(date +%Y%m%d%H%M%S)"
       fi
-      run ln -sfnT "${config.home.homeDirectory}/nix-config/nvim" "$HOME/.config/nvim"
+      run rm -f "$HOME/.config/nvim"
+      run ln -s "${config.home.homeDirectory}/nix-config/nvim" "$HOME/.config/nvim"
     '';
 }

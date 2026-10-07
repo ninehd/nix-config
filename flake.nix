@@ -22,8 +22,7 @@
 
   outputs = inputs@{ nixpkgs, home-manager, ... }:
     let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs {
+      mkPkgs = system: import nixpkgs {
         inherit system;
         overlays = [ inputs.rust-overlay.overlays.default ];
         # Scope unfree allowance to packages this config needs.
@@ -37,29 +36,26 @@
           "discord-unwrapped"
         ];
       };
-      # pi package from its own pinned nixpkgs.
-      pkgs-pi = import inputs.nixpkgs-pi { inherit system; };
+
+      mkHome = system: module:
+        let
+          pkgs = mkPkgs system;
+          # pi package from its own pinned nixpkgs, matching the target system.
+          pkgs-pi = import inputs.nixpkgs-pi { inherit system; };
+        in
+        home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
+          extraSpecialArgs = { inherit inputs pkgs-pi; };
+          modules = [ module ];
+        };
     in
     {
-      homeConfigurations."endeavour" =
-        home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
-          extraSpecialArgs = { inherit inputs pkgs-pi; };
-          modules = [ ./hosts/endeavour.nix ];
-        };
+      homeConfigurations."endeavour" = mkHome "x86_64-linux" ./hosts/endeavour.nix;
 
-      homeConfigurations."wsl" =
-        home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
-          extraSpecialArgs = { inherit inputs pkgs-pi; };
-          modules = [ ./hosts/wsl.nix ];
-        };
+      homeConfigurations."wsl" = mkHome "x86_64-linux" ./hosts/wsl.nix;
 
-      homeConfigurations."debian" =
-        home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
-          extraSpecialArgs = { inherit inputs pkgs-pi; };
-          modules = [ ./hosts/debian.nix ];
-        };
+      homeConfigurations."debian" = mkHome "x86_64-linux" ./hosts/debian.nix;
+
+      homeConfigurations."mac" = mkHome "aarch64-darwin" ./hosts/mac.nix;
     };
 }

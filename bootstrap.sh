@@ -3,23 +3,23 @@
 # Idempotent: safe to re-run, each step is skipped if already done.
 #
 # Usage: ./bootstrap.sh <host>
-#   host: name of the flake output to use (endeavour, wsl, debian)
+#   host: name of the flake output to use (endeavour, wsl, debian, mac)
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <host>" >&2
-  echo "  Available hosts: endeavour, wsl, debian" >&2
+  echo "  Available hosts: endeavour, wsl, debian, mac" >&2
   exit 1
 fi
 
 HOST="$1"
 case "$HOST" in
-  endeavour|wsl|debian) ;;
+  endeavour|wsl|debian|mac) ;;
   *)
     echo "Unknown host: $HOST" >&2
-    echo "Available hosts: endeavour, wsl, debian" >&2
+    echo "Available hosts: endeavour, wsl, debian, mac" >&2
     exit 1
     ;;
 esac
@@ -38,12 +38,20 @@ else
 fi
 
 step "2/5 home-manager switch"
-# Preserve any pre-existing files before Home Manager takes ownership.
-nix run home-manager -- switch -b hm-backup --flake "$REPO_DIR#$HOST"
+if [[ "$HOST" == "mac" ]]; then
+  # This Mac is migrating away from the old dotfiles repo. Delete known legacy
+  # targets instead of backing them up, so Home Manager can take ownership.
+  rm -f \
+    "$HOME/.zshrc" \
+    "$HOME/.zprofile" \
+    "$HOME/.config/starship.toml" \
+    "$HOME/.config/git/ignore"
+fi
+nix run home-manager -- switch --flake "$REPO_DIR#$HOST"
 
 step "3/5 GPU drivers for Nix packages (non-NixOS)"
-if [[ "$HOST" == "debian" ]]; then
-  echo "skipped for the CLI-only Debian profile"
+if [[ "$(uname -s)" != "Linux" || "$HOST" == "debian" ]]; then
+  echo "skipped (only needed for GUI apps on non-NixOS Linux)"
 else
   # Idempotent: just re-links /run/opengl-driver, safe to re-run.
   sudo "$GPU_SETUP"
@@ -57,7 +65,7 @@ else
 fi
 
 step "5/5 Login shell"
-if [[ "$(getent passwd "$USER" | cut -d: -f7)" != "$NIX_ZSH" ]]; then
+if [[ "${SHELL:-}" != "$NIX_ZSH" ]]; then
   chsh -s "$NIX_ZSH"
   echo "Log out and back in for the new shell to take effect."
 else

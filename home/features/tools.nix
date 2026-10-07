@@ -25,14 +25,16 @@
         fd
         htop
         btop
-        xclip
-        wl-clipboard # Wayland equivalent of xclip — Claude Code shells out to it to read clipboard images
         uv
         gh
         glab
         lazygit
         pnpm
         fnm # Node version manager — installs/switches Node per-project, no pkgs.nodejs pin here
+      ]
+      ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+        xclip
+        wl-clipboard # Wayland equivalent of xclip — Claude Code shells out to it to read clipboard images
       ]
       ++ lib.optionals config.home.vscode.enable [
         vscode
