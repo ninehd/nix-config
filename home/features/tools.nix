@@ -25,6 +25,7 @@
         fd
         htop
         btop
+        tmux
         uv
         gh
         glab

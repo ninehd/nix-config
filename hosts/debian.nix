@@ -37,7 +37,6 @@
 
   home.packages = with pkgs; [
     fzf
-    tmux
   ];
 
   # Lightweight prompt: user@host plus at most three directory segments.
