@@ -3,7 +3,7 @@
   "theme": "ansi-dark",
   "defaultProvider": "github-copilot",
   "defaultModel": "gpt-6-luna",
-  "defaultThinkingLevel": "max",
+  "defaultThinkingLevel": "medium",
   "packages": [
     "npm:pi-context-view",
     {
