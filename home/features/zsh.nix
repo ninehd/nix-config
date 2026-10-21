@@ -31,6 +31,9 @@
 
     envExtra = ''
       export FFF_ENABLE_HOME_SCAN=0
+
+      # Keep Right from accepting autosuggestions; Ctrl-E (end-of-line) still accepts.
+      typeset -ga ZSH_AUTOSUGGEST_ACCEPT_WIDGETS=(end-of-line vi-forward-char vi-end-of-line vi-add-eol)
     '';
 
     sessionVariables = {
