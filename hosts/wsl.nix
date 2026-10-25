@@ -16,12 +16,10 @@
   # Target of the `hms` alias (see home/features/zsh.nix).
   home.sessionVariables.FLAKE = "${config.home.homeDirectory}/nix-config#wsl";
 
-  # Python with ensurepip/venv for WSL tools expecting a full Python.
   # Noto fonts cover broad Unicode text plus color emoji in WSLg apps.
   home.packages = with pkgs; [
     noto-fonts
     noto-fonts-color-emoji
-    python312
     jira-cli-go
   ];
 

@@ -26,6 +26,7 @@
         htop
         btop
         tmux
+        python3
         uv
         gh
         glab
