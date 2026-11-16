@@ -21,6 +21,7 @@
     noto-fonts
     noto-fonts-color-emoji
     jira-cli-go
+    kubernetes-helm
   ];
 
   # WSLg apps should prefer JetBrains Mono and fall back to Nerd Font glyphs.
