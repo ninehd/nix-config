@@ -5,6 +5,7 @@
   # each entry when its tool moves to home.packages.
   home.sessionPath = [
     "${config.home.homeDirectory}/.local/bin"
+    "${config.home.homeDirectory}/.cargo/bin"
   ];
 
   # Home Manager installs and configures Nix's zsh. bootstrap.sh separately
