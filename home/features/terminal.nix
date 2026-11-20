@@ -7,6 +7,7 @@
 
   home.packages = with pkgs; [
     jetbrains-mono # font used by ghostty's settings.font-family below
+    nerd-fonts.jetbrains-mono # embedded icons for terminals with unreliable symbol fallbacks (Zed)
     nerd-fonts.symbols-only # nerd font icons fallback, needed for IntelliJ terminal (Ghostty falls back to this automatically already)
   ];
 
