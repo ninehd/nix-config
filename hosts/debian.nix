@@ -6,6 +6,8 @@
     ../home/features/ai.nix
     ../home/features/git.nix
     ../home/features/tools.nix
+    ../home/features/helix.nix
+    ../home/features/lsp.nix
     ../home/features/rust.nix
     ../home/features/zsh.nix
     ../home/features/gc.nix

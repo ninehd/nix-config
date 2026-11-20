@@ -31,6 +31,8 @@
         gh
         glab
         lazygit
+        jujutsu
+        jjui
         pnpm
         fnm # Node version manager — installs/switches Node per-project, no pkgs.nodejs pin here
       ]

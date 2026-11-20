@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "1.5.0",
+  "lastChangelogVersion": "1.5.2",
   "theme": "ansi-dark",
   "defaultProvider": "github-copilot",
   "defaultModel": "gpt-6-luna",
@@ -38,6 +38,6 @@
   ],
   "extensionChangelogVersions": {
     "{\"source\":\"npm:pi-context-view\",\"scope\":\"user\"}": "0.8.4",
-    "{\"source\":\"npm:pi-web-access\",\"scope\":\"user\"}": "0.47.0"
+    "{\"source\":\"npm:pi-web-access\",\"scope\":\"user\"}": "0.48.0"
   }
 }
