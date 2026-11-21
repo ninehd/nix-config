@@ -4,6 +4,7 @@
   # Machine-specific entry point for the current Apple Silicon Mac.
   imports = [
     ../home/common.nix
+    ../home/features/zed.nix
   ];
 
   home.username = "william";
