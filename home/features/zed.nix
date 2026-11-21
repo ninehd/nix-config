@@ -29,7 +29,7 @@
 
       session.trust_all_worktrees = false;
       base_keymap = "JetBrains";
-      vim_mode = true;
+      helix_mode = true;
 
       format_on_save = "off";
       languages.Rust.format_on_save = "on";
