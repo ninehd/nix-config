@@ -31,6 +31,9 @@
       base_keymap = "JetBrains";
       vim_mode = true;
 
+      format_on_save = "off";
+      languages.Rust.format_on_save = "on";
+
       icon_theme = {
         mode = "dark";
         light = "Zed (Default)";
