@@ -9,7 +9,7 @@
 
     userSettings = {
       terminal = {
-        font_family = "JetBrainsMono Nerd Font Mono";
+        font_family = "JetBrainsMono Nerd Font";
         font_fallbacks = [ "Symbols Nerd Font Mono" ];
         dock = "left";
       };
