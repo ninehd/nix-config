@@ -5,7 +5,7 @@
 
   programs.zed-editor = {
     enable = true;
-    extensions = [ "tokyo-night" "toml" "git-firefly" ];
+    extensions = [ "tokyo-night" "toml" "git-firefly" "emmet" ];
 
     userSettings = {
       terminal = {
