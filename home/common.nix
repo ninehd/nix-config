@@ -15,7 +15,6 @@
     ./features/discord.nix
     ./features/ai.nix
     ./features/tools.nix
-    ./features/helix.nix
     ./features/lsp.nix
     ./features/rust.nix
     ./features/astronvim.nix

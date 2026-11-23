@@ -13,12 +13,6 @@
 
   targets.genericLinux.enable = true;
 
-  # Use WSLg's clipboard without the native provider's primary-selection commands.
-  programs.helix.settings.editor.clipboard-provider.custom = {
-    yank = { command = "wl-paste"; args = [ "--no-newline" ]; };
-    paste = { command = "wl-copy"; args = [ "--type" "text/plain" ]; };
-  };
-
   # Target of the `hms` alias (see home/features/zsh.nix).
   home.sessionVariables.FLAKE = "${config.home.homeDirectory}/nix-config#wsl";
 
