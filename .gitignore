@@ -10,5 +10,6 @@ pi/extensions/herdr-agent-state.ts
 
 # Local/private Pi skills
 .agents/skills/jenkins-configs/
+.agents/skills/jira/
 
 node_modules/
