@@ -7,6 +7,7 @@
 
     sessionVariables = {
       XCURSOR_SIZE = 16;
+      ZED_ALLOW_EMULATED_GPU = "1";
 
       # WSLg provides DISPLAY/WAYLAND_DISPLAY/PULSE_SERVER dynamically.
       # Don't override them here.

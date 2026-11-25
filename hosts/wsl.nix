@@ -6,6 +6,7 @@
   imports = [
     ../home/common.nix
     ../home/features/zsh-wsl.nix
+    ../home/features/zed.nix
   ];
 
   home.username = "wdhenin";
