@@ -7,6 +7,13 @@
     enable = true;
     extensions = [ "tokyo-night" "toml" "git-firefly" "emmet" "groovy" ];
 
+    userKeymaps = [
+      {
+        context = "Editor";
+        bindings."ctrl-s" = "workspace::Save";
+      }
+    ];
+
     userSettings = {
       terminal = {
         font_family = "JetBrainsMono Nerd Font";

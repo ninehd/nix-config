@@ -5,6 +5,7 @@
   # anything unique to EndeavourOS. Right now it's just the Linux home path.
   imports = [
     ../home/common.nix
+    ../home/features/zed.nix
   ];
 
   home.username = "ninehd";
